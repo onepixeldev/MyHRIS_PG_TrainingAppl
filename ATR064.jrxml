@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR064" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="98fabab0-0276-4657-926c-d7a15f5324ad">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
+	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
+	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR064_files/main_jrxml"/>
+	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR064"/>
+	<parameter name="REFID" class="java.lang.String"/>
+	<parameter name="YEAR_YEAR" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT
+REFID,
+TH_DATE_FROM,
+TAS_CODE,
+TH_TRAINING_TITLE,
+DATE_FROM_TO,
+TH_TRAINING_VENUE,
+TF_FACILITATOR_ID,
+FACI_NAME,
+TAS_DESC,
+CF_FULLMARKS,
+CF_JUMLAH,
+CASE
+WHEN CF_JUMLAH > 0 AND CF_FULLMARKS > 0 
+THEN ROUND((CF_JUMLAH / CF_FULLMARKS) * 100,0)
+ELSE 0
+END CF_PERCENTAGEMARK
+FROM
+(
+  SELECT DISTINCT 
+  TH_REF_ID REFID,
+  TH_TRAINING_TITLE,
+  TH_TRAINING_VENUE,
+  TH_DATE_FROM,
+  TF_FACILITATOR_ID,
+  TF_TYPE,
+  CASE
+  WHEN TF_TYPE = 'EXTERNAL'
+  THEN 
+  (
+    SELECT EF_FACILITATOR_NAME FROM EXTERNAL_FACILITATOR WHERE EF_FACILITATOR_ID = TF_FACILITATOR_ID
+  )
+  ELSE 
+  (
+    SELECT SM_STAFF_NAME FROM STAFF_MAIN WHERE SM_STAFF_ID = TF_FACILITATOR_ID
+  )
+  END AS FACI_NAME,
+  TAS_CODE,
+  TAS_DESC,
+  TAS_ORDERING,
+  TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') DATE_FROM_TO
+  FROM TRAINING_HEAD,STAFF_TRAINING_ASSESSMENT,
+  TRAINING_ASSESSMENT_SETUP,TRAINING_FACILITATOR
+  WHERE STA_TRAINING_REFID = TH_REF_ID
+  AND TF_TRAINING_REFID = TH_REF_ID 
+  AND STA_FACILITATOR = TF_FACILITATOR_ID
+  AND STA_ASSESSMENT_CODE = TAS_CODE
+  AND TAS_TYPE = 'FACILITATOR'
+  AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
+  AND TAS_DESC IS NOT NULL
+  AND ($P{REFID} IS NULL OR ($P{REFID} IS NOT NULL AND TH_REF_ID = $P{REFID})) 
+  AND ($P{YEAR_YEAR} IS NULL OR ($P{YEAR_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR}))
+)
+LEFT JOIN
+(
+  SELECT (COUNT(STA_MARK)*5) CF_FULLMARKS,
+  STA_ASSESSMENT_CODE SAC, 
+  TH_REF_ID TID, 
+  STA_FACILITATOR FID
+  FROM TRAINING_HEAD,STAFF_TRAINING_ASSESSMENT,
+  TRAINING_ASSESSMENT_SETUP,TRAINING_FACILITATOR
+  WHERE STA_TRAINING_REFID = TH_REF_ID
+  AND TF_TRAINING_REFID = TH_REF_ID
+  AND STA_FACILITATOR = TF_FACILITATOR_ID
+  AND STA_ASSESSMENT_CODE = TAS_CODE
+  AND TAS_TYPE = 'FACILITATOR'
+  AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
+  GROUP BY STA_ASSESSMENT_CODE, TH_REF_ID, STA_FACILITATOR
+) ON (SAC = TAS_CODE AND TID = REFID AND FID = TF_FACILITATOR_ID)
+LEFT JOIN 
+(
+  SELECT NVL(SUM(STA_MARK),0) CF_JUMLAH, 
+  STA_ASSESSMENT_CODE SAC2,  
+  TH_REF_ID TID2, 
+  STA_FACILITATOR FID2
+  FROM TRAINING_HEAD,STAFF_TRAINING_ASSESSMENT,
+  TRAINING_ASSESSMENT_SETUP,TRAINING_FACILITATOR
+  WHERE STA_TRAINING_REFID = TH_REF_ID
+  AND TF_TRAINING_REFID = TH_REF_ID
+  AND STA_FACILITATOR = TF_FACILITATOR_ID
+  AND STA_ASSESSMENT_CODE = TAS_CODE
+  AND TAS_TYPE = 'FACILITATOR'
+  AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
+  GROUP BY STA_ASSESSMENT_CODE, TH_REF_ID, STA_FACILITATOR
+) ON (SAC2 = TAS_CODE AND TID2 = REFID AND FID2 = TF_FACILITATOR_ID)
+ORDER BY TF_FACILITATOR_ID, TAS_CODE]]>
+	</queryString>
+	<field name="REFID" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="REFID"/>
+	</field>
+	<field name="TH_DATE_FROM" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="TH_DATE_FROM"/>
+	</field>
+	<field name="TAS_CODE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TAS_CODE"/>
+	</field>
+	<field name="TH_TRAINING_TITLE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+	</field>
+	<field name="DATE_FROM_TO" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="DATE_FROM_TO"/>
+	</field>
+	<field name="TH_TRAINING_VENUE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_VENUE"/>
+	</field>
+	<field name="TF_FACILITATOR_ID" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TF_FACILITATOR_ID"/>
+	</field>
+	<field name="FACI_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="FACI_NAME"/>
+	</field>
+	<field name="TAS_DESC" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TAS_DESC"/>
+	</field>
+	<field name="CF_FULLMARKS" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="CF_FULLMARKS"/>
+	</field>
+	<field name="CF_JUMLAH" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="CF_JUMLAH"/>
+	</field>
+	<field name="CF_PERCENTAGEMARK" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="CF_PERCENTAGEMARK"/>
+	</field>
+	<variable name="TITLE" class="java.lang.String"/>
+	<variable name="DATE" class="java.lang.String"/>
+	<variable name="TEMPAT" class="java.lang.String"/>
+	<group name="Group1" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{TF_FACILITATOR_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="132">
+				<frame>
+					<reportElement x="9" y="1" width="505" height="91" uuid="ee6cfbf5-7ab2-423f-b630-e7b9d8b7cd28"/>
+					<frame>
+						<reportElement positionType="Float" x="0" y="0" width="505" height="20" uuid="b881e308-432b-4c11-ab8a-1de4bc8ee727"/>
+						<staticText>
+							<reportElement x="0" y="0" width="100" height="20" uuid="656b093e-dc67-47d9-8a19-2017984be2ef"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Tajuk Program ]]></text>
+						</staticText>
+						<staticText>
+							<reportElement x="100" y="0" width="20" height="20" uuid="fe25be5b-b795-4a02-b8d2-56a7a9a7656b"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[:]]></text>
+						</staticText>
+						<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+							<reportElement x="120" y="0" width="385" height="20" uuid="0c93489c-7e4d-44b5-9734-4c73bff19f91">
+								<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							</reportElement>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="false"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{TH_TRAINING_TITLE}]]></textFieldExpression>
+						</textField>
+					</frame>
+					<frame>
+						<reportElement positionType="Float" x="0" y="20" width="505" height="20" uuid="3e154f15-c7d6-4105-9b34-78512db644ba"/>
+						<staticText>
+							<reportElement x="0" y="0" width="100" height="20" uuid="0e68afc7-312a-4fa1-b26b-aaa3da4aa148"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Tarikh]]></text>
+						</staticText>
+						<staticText>
+							<reportElement x="100" y="0" width="20" height="20" uuid="54e8699a-701f-4bd8-af22-550ab08f2787"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[:]]></text>
+						</staticText>
+						<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+							<reportElement x="120" y="0" width="385" height="20" uuid="9ac83a6b-6a53-4758-ab9a-dbc812cb17ed">
+								<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							</reportElement>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="false"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{DATE_FROM_TO}]]></textFieldExpression>
+						</textField>
+					</frame>
+					<frame>
+						<reportElement positionType="Float" x="0" y="40" width="505" height="20" uuid="dcf2ca1c-aa21-4741-9104-d99fff3ee420"/>
+						<staticText>
+							<reportElement x="0" y="0" width="100" height="20" uuid="f93fe641-13f5-40a8-a862-df6f6166da87"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Tempat]]></text>
+						</staticText>
+						<staticText>
+							<reportElement x="100" y="0" width="20" height="20" uuid="44f739f2-4f8d-4e00-9691-44a140fa53be"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[:]]></text>
+						</staticText>
+						<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+							<reportElement x="120" y="0" width="385" height="20" uuid="2231b2d5-433a-43b5-8159-2440b923e0ab">
+								<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							</reportElement>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="false"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{TH_TRAINING_VENUE}]]></textFieldExpression>
+						</textField>
+					</frame>
+					<frame>
+						<reportElement positionType="Float" x="0" y="60" width="505" height="20" uuid="f05a60a0-1eb6-4372-8fd0-7c33405c850e"/>
+						<staticText>
+							<reportElement x="0" y="0" width="100" height="20" uuid="8ff1ae9f-5107-488a-9d7f-54f56be77d24"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Penceramah]]></text>
+						</staticText>
+						<staticText>
+							<reportElement x="100" y="0" width="20" height="20" uuid="0203228e-b7da-422c-9bc5-f0e04ab22466"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[:]]></text>
+						</staticText>
+						<textField>
+							<reportElement x="121" y="0" width="384" height="20" uuid="d1f23f11-6ca1-4712-9fd7-79459aaf8b45"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{FACI_NAME}]]></textFieldExpression>
+						</textField>
+					</frame>
+				</frame>
+				<frame>
+					<reportElement positionType="Float" mode="Opaque" x="0" y="92" width="427" height="40" backcolor="#EBEBEB" uuid="b5961a8a-1459-4a41-aa3d-ce73aef2b593"/>
+					<staticText>
+						<reportElement x="0" y="0" width="35" height="40" uuid="b658bb43-9179-42e3-90fe-c2b751506c6d">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						</reportElement>
+						<box>
+							<pen lineWidth="0.5"/>
+						</box>
+						<textElement textAlignment="Center" verticalAlignment="Middle">
+							<font fontName="Arial" size="12" isBold="true"/>
+						</textElement>
+						<text><![CDATA[BIL.]]></text>
+					</staticText>
+					<staticText>
+						<reportElement x="35" y="0" width="300" height="40" uuid="c2a0b711-ef52-4a3d-81fa-837b08f19d99">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						</reportElement>
+						<box>
+							<pen lineWidth="0.5"/>
+						</box>
+						<textElement textAlignment="Center" verticalAlignment="Middle">
+							<font fontName="Arial" size="12" isBold="true"/>
+						</textElement>
+						<text><![CDATA[PERKARA]]></text>
+					</staticText>
+					<staticText>
+						<reportElement x="335" y="0" width="92" height="40" uuid="e4c9995f-decb-4f4e-b067-0224965a120d">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						</reportElement>
+						<box>
+							<pen lineWidth="0.5"/>
+						</box>
+						<textElement textAlignment="Center" verticalAlignment="Middle">
+							<font fontName="Arial" size="12" isBold="true"/>
+						</textElement>
+						<text><![CDATA[% KEPUASAN]]></text>
+					</staticText>
+				</frame>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="89">
+				<staticText>
+					<reportElement x="0" y="0" width="100" height="20" uuid="1a1bfc7a-ccee-465b-8420-8379634d1b63"/>
+					<textElement verticalAlignment="Bottom">
+						<font fontName="Arial" isBold="true" isUnderline="true"/>
+					</textElement>
+					<text><![CDATA[Catatan:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="20" width="100" height="30" uuid="75b42649-0b80-460d-8c16-bec4490af8ba"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Markah Penuh
+% Markah Kepuasan]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="100" y="20" width="9" height="30" uuid="2ad4e7f0-1f68-44b6-85b1-214052d36b84"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[=
+=]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="109" y="19" width="241" height="20" uuid="f13a3541-c8d8-40ec-a144-a2a282e1d54f"/>
+					<textElement verticalAlignment="Middle" markup="html">
+						<font fontName="Arial" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Jumlah Peserta <b>x</b> Markah Maksimum (5)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="109" y="30" width="241" height="20" uuid="abb98773-a673-4845-9cc0-e9356f1cba71"/>
+					<textElement verticalAlignment="Middle" markup="html">
+						<font fontName="Arial" isBold="false" isUnderline="true"/>
+					</textElement>
+					<text><![CDATA[Jumlah Markah <b>x</b> 100]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="109" y="46" width="100" height="20" uuid="a10a3aca-eefb-4221-b157-b79cb4915d09"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="Arial" isBold="false" isUnderline="false"/>
+					</textElement>
+					<text><![CDATA[Markah Penuh]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="40" splitType="Stretch">
+			<frame>
+				<reportElement x="0" y="0" width="360" height="40" uuid="f20b8ad0-06b2-4c62-b07e-430206a99228"/>
+				<staticText>
+					<reportElement x="0" y="0" width="360" height="20" uuid="91d607c8-b110-4ead-9b53-74f4ece0fdac"/>
+					<textElement verticalAlignment="Bottom">
+						<font fontName="Arial" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[UNIVERSITI PENDIDIKAN SULTAN IDRIS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="20" width="360" height="20" uuid="f9c47f5f-df4e-4afc-a18c-db7c97bb777b"/>
+					<textElement>
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[LAPORAN PENILAIAN PROGRAM ]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<frame>
+				<reportElement positionType="Float" x="0" y="0" width="427" height="30" uuid="b2cd03b7-a08c-4d85-b4b7-e4c4da860993"/>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="35" y="0" width="300" height="30" uuid="8e6d0994-2021-477b-b5da-80874b2e7125"/>
+					<box>
+						<pen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10"/>
+						<paragraph leftIndent="5"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TAS_DESC}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="335" y="0" width="92" height="30" uuid="13becb55-02e0-48b3-8b23-f196bf861ecd">
+						<property name="com.jaspersoft.studio.unit.rightIndent" value="px"/>
+					</reportElement>
+					<box>
+						<pen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="10"/>
+						<paragraph rightIndent="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CF_PERCENTAGEMARK}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="0" y="0" width="35" height="30" uuid="8a106da7-c30b-4be3-b63b-15726fd34cc6">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<box>
+						<pen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10"/>
+						<paragraph leftIndent="5"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Group1_COUNT}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="54" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="637" y="0" width="165" height="10" uuid="69af6050-5973-4e63-9768-df77e4c63a8c"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>Muka Surat"+":"+"&nbsp;&nbsp;"+$V{PAGE_NUMBER}+"</b>"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>
