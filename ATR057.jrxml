@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR057" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="cd9f27fb-7b6c-462d-a30c-4aff53320714">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR057_files/main_jrxml"/>
@@ -35,29 +35,29 @@
 		</box>
 	</style>
 	<subDataset name="APPL_TRAINING" uuid="1c64db90-d518-4229-87e7-c5af78d88725">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="YEAR_YEAR" class="java.lang.String"/>
 		<parameter name="SID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT COUNT(STH_TRAINING_REFID) CTR_STAFF
+			<![CDATA[SELECT COUNT(STH_TRAINING_REFID) AS "CTR_STAFF"
 FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
 WHERE STH_TRAINING_REFID = TH_REF_ID
 AND TH_STATUS = 'APPROVE'
 AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR} 
 AND STH_STAFF_ID = $P{SID}]]>
 		</queryString>
-		<field name="CTR_STAFF" class="java.math.BigDecimal">
+		<field name="CTR_STAFF" class="java.lang.Long">
 			<property name="com.jaspersoft.studio.field.label" value="CTR_STAFF"/>
 		</field>
 	</subDataset>
 	<subDataset name="COMPLETE_TRAINING" uuid="c1620169-3707-47b1-9db6-fce29167e2d0">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="YEAR_YEAR" class="java.lang.String"/>
 		<parameter name="SID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT COUNT(STH_TRAINING_REFID) CTR_STAFF
+			<![CDATA[SELECT COUNT(STH_TRAINING_REFID) AS "CTR_STAFF"
 FROM
 ( 
     SELECT STH_TRAINING_REFID
@@ -86,59 +86,73 @@ FROM
     AND TH_STATUS = 'APPROVE'
     AND STH_STATUS = 'APPROVE'
     AND STH_STAFF_ID = STD_STAFF_ID
-    AND NVL(STD_ATTEND,'N') IN ('Y','A')
+    AND COALESCE(STD_ATTEND,'N') IN ('Y','A')
     AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
     AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016'
     AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR} 
     AND STD_STAFF_ID = $P{SID}   
-)]]>
+) AS TBL1]]>
 		</queryString>
-		<field name="CTR_STAFF" class="java.math.BigDecimal">
+		<field name="CTR_STAFF" class="java.lang.Long">
 			<property name="com.jaspersoft.studio.field.label" value="CTR_STAFF"/>
 		</field>
 	</subDataset>
 	<subDataset name="STAFF_LIST" uuid="f3026a45-e3c6-4a33-bcf8-244cba6006f9">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="DM_DEPT_CODE" class="java.lang.String"/>
 		<parameter name="YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT SM_STAFF_ID,
-    SM_STAFF_NAME,
-    SM_DEPT_CODE,
-    DM_DEPT_DESC,
-    SS_SALARY_GRADE,
-    SS_SERVICE_DESC
-    FROM STAFF_MAIN,STAFF_STATUS,DEPARTMENT_MAIN,SERVICE_SCHEME
-    WHERE SM_STAFF_STATUS = SS_STATUS_CODE
-    AND SM_DEPT_CODE = DM_DEPT_CODE
-    AND SM_JOB_CODE = SS_SERVICE_CODE
-    AND SS_STATUS_STS = 'ACTIVE'
-    AND SM_STAFF_TYPE = 'STAFF'
-    AND SUBSTR(SM_STAFF_ID,1,1)  = 'K'
-    AND SM_STAFF_ID NOT LIKE '%Admin%'
-    AND ($P{DM_DEPT_CODE}  IS NULL OR ($P{DM_DEPT_CODE} IS NOT NULL AND SM_DEPT_CODE = $P{DM_DEPT_CODE}))
-    ORDER BY DECODE(LENGTH(SS_SALARY_GRADE),2,SUBSTR(SS_SALARY_GRADE,2,1),3,
-    SUBSTR(SS_SALARY_GRADE,2,2),4,SUBSTR(SS_SALARY_GRADE,3,2),5,
-    SUBSTR(SS_SALARY_GRADE,4,2)) DESC,SS_SERVICE_DESC,SM_STAFF_ID]]>
+			<![CDATA[SELECT 
+SM_STAFF_ID AS "SM_STAFF_ID",
+SM_STAFF_NAME AS "SM_STAFF_NAME",
+SM_DEPT_CODE AS "SM_DEPT_CODE",
+DM_DEPT_DESC AS "DM_DEPT_DESC",
+SS_SALARY_GRADE AS "SS_SALARY_GRADE",
+SS_SERVICE_DESC AS "SS_SERVICE_DESC"
+FROM STAFF_MAIN,STAFF_STATUS,DEPARTMENT_MAIN,SERVICE_SCHEME
+WHERE SM_STAFF_STATUS = SS_STATUS_CODE
+AND SM_DEPT_CODE = DM_DEPT_CODE
+AND SM_JOB_CODE = SS_SERVICE_CODE
+AND SS_STATUS_STS = 'ACTIVE'
+AND SM_STAFF_TYPE = 'STAFF'
+AND SUBSTR(SM_STAFF_ID,1,1)  = 'K'
+AND SM_STAFF_ID NOT LIKE '%Admin%'
+AND ($P{DM_DEPT_CODE}  IS NULL OR ($P{DM_DEPT_CODE} IS NOT NULL AND SM_DEPT_CODE = $P{DM_DEPT_CODE}))
+ORDER BY (CASE 
+WHEN LENGTH(SS_SALARY_GRADE) = 2
+THEN SUBSTR(SS_SALARY_GRADE,2,1)
+WHEN LENGTH(SS_SALARY_GRADE) = 3
+THEN SUBSTR(SS_SALARY_GRADE,2,2)
+WHEN LENGTH(SS_SALARY_GRADE) = 4
+THEN SUBSTR(SS_SALARY_GRADE,3,2)
+WHEN LENGTH(SS_SALARY_GRADE) = 5
+THEN SUBSTR(SS_SALARY_GRADE,4,2)
+END) DESC,SS_SERVICE_DESC,SM_STAFF_ID]]>
 		</queryString>
 		<field name="SM_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="DM_DEPT_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 		</field>
 		<field name="SS_SALARY_GRADE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SALARY_GRADE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="SS_SERVICE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<variable name="PTJ" class="java.lang.String">
 			<variableExpression><![CDATA[$F{DM_DEPT_DESC}]]></variableExpression>
@@ -147,7 +161,7 @@ FROM
 	<parameter name="DM_DEPT_CODE" class="java.lang.String"/>
 	<parameter name="YEAR_YEAR" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[select to_char(sysdate, 'DD-MM-YYYY HH12:MI AM') curr_date_time from dual]]>
+		<![CDATA[select to_char(CURRENT_TIMESTAMP, 'DD-MM-YYYY HH12:MI AM') AS "CURR_DATE_TIME"]]>
 	</queryString>
 	<field name="CURR_DATE_TIME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE_TIME"/>

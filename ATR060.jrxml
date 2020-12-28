@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR060" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a3ea4f21-b0f7-4de1-a0b3-10d40575ea1c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR060_files/main_jrxml"/>
@@ -35,11 +35,15 @@
 		</box>
 	</style>
 	<subDataset name="TRAINING_STAT" uuid="5d5600f3-9302-4619-a8c0-bbfec4f8ca01">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="YEAR_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT DDD1, STAFF_PTJ_TOT, TOT_STAFF_APPL, TOT_STAFF
+			<![CDATA[SELECT 
+DDD1 AS "DDD1",  
+STAFF_PTJ_TOT::NUMERIC AS "STAFF_PTJ_TOT", 
+TOT_STAFF_APPL::NUMERIC AS "TOT_STAFF_APPL", 
+TOT_STAFF::NUMERIC AS "TOT_STAFF"
 FROM
 (
     SELECT DM_DEPT_DESC DDD1, COUNT(STH_STAFF_ID) TOT_STAFF
@@ -57,8 +61,8 @@ FROM
             AND STH_STATUS = 'APPROVE'
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016' 
-            AND TO_CHAR(TH_DATE_FROM,'yyyy') = NVL($P{YEAR_YEAR},TO_CHAR(SYSDATE,'yyyy'))
-            AND TRUNC(TH_DATE_FROM) <= TRUNC(SYSDATE)
+            AND TO_CHAR(TH_DATE_FROM,'yyyy') = COALESCE($P{YEAR_YEAR},TO_CHAR(CURRENT_DATE,'yyyy'))
+            AND TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY') <= TO_CHAR(CURRENT_DATE,'DD/MM/YYYY')
             UNION
             SELECT DM_DEPT_DESC,STH_STAFF_ID,STH_TRAINING_REFID
             FROM STAFF_MAIN,STAFF_TRAINING_HEAD,TRAINING_HEAD,DEPARTMENT_MAIN
@@ -68,8 +72,8 @@ FROM
             AND TH_STATUS = 'APPROVE'
             AND STH_STATUS = 'APPROVE'
             AND TH_INTERNAL_EXTERNAL = 'EXTERNAL_AGENCY'
-            AND TO_CHAR(TH_DATE_FROM,'yyyy') = NVL($P{YEAR_YEAR},TO_CHAR(SYSDATE,'yyyy'))
-            AND TRUNC(TH_DATE_FROM) <= TRUNC(SYSDATE)
+            AND TO_CHAR(TH_DATE_FROM,'yyyy') = COALESCE($P{YEAR_YEAR},TO_CHAR(CURRENT_DATE,'yyyy'))
+            AND TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY') <= TO_CHAR(CURRENT_DATE,'DD/MM/YYYY')
             UNION
             SELECT DM_DEPT_DESC,STH_STAFF_ID,STH_TRAINING_REFID
             FROM STAFF_MAIN,STAFF_TRAINING_HEAD,TRAINING_HEAD,DEPARTMENT_MAIN,STAFF_TRAINING_DETL
@@ -80,19 +84,18 @@ FROM
             AND SM_DEPT_CODE = DM_DEPT_CODE
             AND TH_STATUS = 'APPROVE'
             AND STH_STATUS = 'APPROVE'
-            AND NVL(STD_ATTEND,'N') IN ('Y','A')
+            AND COALESCE(STD_ATTEND,'N') IN ('Y','A')
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016' 
-            AND TO_CHAR(TH_DATE_FROM,'yyyy') = NVL($P{YEAR_YEAR},TO_CHAR(SYSDATE,'yyyy'))
-            AND TRUNC(TH_DATE_FROM) <= TRUNC(SYSDATE)
-        )
+            AND TO_CHAR(TH_DATE_FROM,'yyyy') = COALESCE($P{YEAR_YEAR},TO_CHAR(CURRENT_DATE,'yyyy'))
+            AND TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY') <= TO_CHAR(CURRENT_DATE,'DD/MM/YYYY')
+        ) AS TBL1
         GROUP BY DM_DEPT_DESC,STH_STAFF_ID
-    )
+    ) AS TBL7
     WHERE TOT_STAFF < 2
     GROUP BY DM_DEPT_DESC
-
 )
-LEFT JOIN 
+AS TBL2 LEFT JOIN 
 (
     SELECT COUNT(STH_STAFF_ID) TOT_STAFF_APPL, DDD2
     FROM 
@@ -110,7 +113,7 @@ LEFT JOIN
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR}
-            AND TRUNC(TH_DATE_FROM) <= TRUNC(SYSDATE)
+            AND TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY') <= TO_CHAR(CURRENT_DATE,'DD/MM/YYYY')
             UNION 
             SELECT DM_DEPT_DESC,STH_STAFF_ID,STH_TRAINING_REFID
             FROM STAFF_MAIN,STAFF_TRAINING_HEAD,TRAINING_HEAD,DEPARTMENT_MAIN
@@ -121,7 +124,7 @@ LEFT JOIN
             AND STH_STATUS = 'APPROVE'
             AND TH_INTERNAL_EXTERNAL = 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR}
-            AND TRUNC(TH_DATE_FROM) <= TRUNC(SYSDATE)
+            AND TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY') <= TO_CHAR(CURRENT_DATE,'DD/MM/YYYY')
             UNION
             SELECT DM_DEPT_DESC,STH_STAFF_ID,STH_TRAINING_REFID
             FROM STAFF_MAIN,STAFF_TRAINING_HEAD,TRAINING_HEAD,DEPARTMENT_MAIN,STAFF_TRAINING_DETL
@@ -132,16 +135,16 @@ LEFT JOIN
             AND STH_STAFF_ID = STD_STAFF_ID
             AND TH_STATUS = 'APPROVE'
             AND STH_STATUS = 'APPROVE'
-            AND NVL(STD_ATTEND,'N') IN ('Y','A')
+            AND COALESCE(STD_ATTEND,'N') IN ('Y','A')
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016' 
             AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR} 
-            AND TRUNC(TH_DATE_FROM) <= TRUNC(SYSDATE)
-        )
+            AND TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY') <= TO_CHAR(CURRENT_DATE,'DD/MM/YYYY')
+        ) AS TBL3
         GROUP BY DM_DEPT_DESC,STH_STAFF_ID
-    )
+    ) AS TBL4
     GROUP BY DDD2
-) ON DDD2 = DDD1
+) AS TBL5 ON DDD2 = DDD1
 LEFT JOIN
 (
     SELECT COUNT(SM_STAFF_ID) STAFF_PTJ_TOT, DM_DEPT_DESC DDD3
@@ -153,7 +156,7 @@ LEFT JOIN
     AND SM_STAFF_ID NOT LIKE '%Admin%'
     AND SM_STAFF_TYPE = 'STAFF'
     GROUP BY DM_DEPT_DESC
-) ON DDD3 = DDD1
+) AS TBL6 ON DDD3 = DDD1
 ORDER BY TOT_STAFF,DDD1]]>
 		</queryString>
 		<field name="DDD1" class="java.lang.String">
@@ -174,7 +177,7 @@ ORDER BY TOT_STAFF,DDD1]]>
 	</subDataset>
 	<parameter name="YEAR_YEAR" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD/MM/YY') CURR_DATE, TO_CHAR(SYSDATE, 'YYYY') CURR_YEAR FROM DUAL]]>
+		<![CDATA[SELECT TO_CHAR(CURRENT_DATE, 'DD/MM/YY') AS "CURR_DATE", TO_CHAR(CURRENT_DATE, 'YYYY') AS "CURR_YEAR"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR250" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="40" bottomMargin="40" uuid="fd9054c1-a2ec-41be-82ed-e433d8bfe4e1">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -36,22 +36,22 @@
 		</box>
 	</style>
 	<subDataset name="LAMPIRAN" uuid="27ff1c70-b785-477d-b0a6-b2d2fabf094b">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TARIKH_SEND" class="java.lang.String"/>
 		<parameter name="TRAINING_REFID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT REFID1,
-TH_TRAINING_TITLE,
-TARIKH,
-DUE_DATE,
-STAFF_NAME,
-THD_COORDINATOR_TELNO,
-STH_STAFF_ID,
-SM_STAFF_NAME,
-SM_DEPT_CODE,
-DEPARTMENT,
-STAFF_NAME||' di talian '||THD_COORDINATOR_TELNO COORDINATOR
+			<![CDATA[SELECT REFID1 AS "REFID1",
+TH_TRAINING_TITLE AS "TH_TRAINING_TITLE",
+TARIKH AS "TARIKH",
+DUE_DATE AS "DUE_DATE",
+STAFF_NAME AS "STAFF_NAME",
+THD_COORDINATOR_TELNO AS "THD_COORDINATOR_TELNO",
+STH_STAFF_ID AS "STH_STAFF_ID",
+SM_STAFF_NAME AS "SM_STAFF_NAME",
+SM_DEPT_CODE AS "SM_DEPT_CODE",
+DEPARTMENT AS "DEPARTMENT",
+STAFF_NAME||' di talian '||THD_COORDINATOR_TELNO AS "COORDINATOR"
 FROM 
 (
 SELECT TH_REF_ID REFID1,TH_TRAINING_TITLE,
@@ -61,18 +61,20 @@ FROM TRAINING_HEAD
 WHERE TH_INTERNAL_EXTERNAL NOT IN ('EXTERNAL_AGENCY')
 AND TH_REF_ID = $P{TRAINING_REFID} 
 AND TH_STATUS = 'APPROVE'
-) 
+) AS TBL1
 LEFT JOIN 
 (
 SELECT TM_TITLE_DESC||' '||SM_STAFF_NAME STAFF_NAME,
 THD_COORDINATOR_TELNO,TH_REF_ID REFID2
-FROM TRAINING_HEAD,TRAINING_HEAD_DETL,STAFF_MAIN,TITLE_MAIN
+FROM TRAINING_HEAD
+FULL OUTER JOIN TRAINING_HEAD_DETL ON TH_REF_ID = THD_REF_ID
+FULL OUTER JOIN STAFF_MAIN ON THD_COORDINATOR = SM_STAFF_ID
+FULL OUTER JOIN TITLE_MAIN ON SM_STAS_TITLE = TM_TITLE_CODE
 WHERE TH_REF_ID = $P{TRAINING_REFID} 
 AND TH_STATUS = 'APPROVE'
-AND TH_REF_ID = THD_REF_ID
-AND THD_COORDINATOR = SM_STAFF_ID
-AND SM_STAS_TITLE = TM_TITLE_CODE(+)
-) ON REFID2 = REFID1
+) 
+AS TBL2
+ON REFID2 = REFID1
 LEFT JOIN 
 (
 SELECT STH_TRAINING_REFID REFID3,
@@ -86,17 +88,20 @@ AND SM_DEPT_CODE = DM_DEPT_CODE
 AND STH_TRAINING_REFID = STD_TRAINING_REFID
 AND STH_STAFF_ID = STD_STAFF_ID
 AND STH_STATUS = 'APPROVE'
-AND NVL(STD_SENDMEMO,'N') = 'Y'
+AND COALESCE(STD_SENDMEMO,'N') = 'Y'
 AND TO_CHAR(STD_SENDMEMO_DATE,'dd/mm/yyyy') = $P{TARIKH_SEND} 
 AND STH_TRAINING_REFID = $P{TRAINING_REFID} 
 ORDER BY SM_DEPT_CODE,SM_STAFF_NAME
-) ON REFID3 = REFID1]]>
+) AS TBL3
+ON REFID3 = REFID1]]>
 		</queryString>
 		<field name="REFID1" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="REFID1"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="TH_TRAINING_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="TARIKH" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TARIKH"/>
@@ -109,15 +114,19 @@ ORDER BY SM_DEPT_CODE,SM_STAFF_NAME
 		</field>
 		<field name="THD_COORDINATOR_TELNO" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="THD_COORDINATOR_TELNO"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head_detl"/>
 		</field>
 		<field name="STH_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="STH_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_training_head"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="DEPARTMENT" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DEPARTMENT"/>
@@ -142,8 +151,40 @@ ORDER BY SM_DEPT_CODE,SM_STAFF_NAME
 	<parameter name="TARIKH_SEND" class="java.lang.String"/>
 	<parameter name="TRAINING_REFID" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT CAL_CONVERT_TO_HIJRAH_DATE2($P{TARIKH_SEND})||'H' AS H_DATE
-FROM DUAL]]>
+		<![CDATA[select
+"H_DAY"||' '||"H_MONTH"||' '||"H_YEAR" AS "H_DATE"
+from
+(
+	select 
+	case 
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='01'
+	then 'MUHARAM'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='02'
+	then 'SAFAR'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='03'
+	then 'RABIULAWAL'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='04'
+	then 'RABIULAKHIR'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='05'
+	then 'JAMADILAWAL'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='06'
+	then 'JAMADILAKHIR'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='07'
+	then 'REJAB'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='08'
+	then 'SYAABAN'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='09'
+	then 'RAMADHAN'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='10'
+	then 'SYAWAL'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='11'
+	then 'ZULKAEDAH'
+	when substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),4,2)='12'
+	then 'ZULHIJJAH'
+	end AS "H_MONTH",
+	substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND}),1,2) "H_DAY",
+	substr(calendar_convert_to_hijrah_date($P{TARIKH_SEND})||'H',7,5) "H_YEAR"
+) AS TBL1;]]>
 	</queryString>
 	<field name="H_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="H_DATE"/>
@@ -658,7 +699,7 @@ FROM DUAL]]>
 				<reportElement x="330" y="50" width="185" height="40" uuid="cdd6ded3-fc14-499e-96cf-92173f052dda">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
-				<imageExpression><![CDATA["LOGO_ISO_9001_2015_QMS_02816.jpg"]]></imageExpression>
+				<imageExpression><![CDATA["D:\\UPSIDev\\JaspersoftWorkspace_6_10\\MyHRIS_PG\\MyHRIS_PG_ExternalTraining\\LOGO_ISO_9001_2015_QMS_02816.jpg"]]></imageExpression>
 			</image>
 		</band>
 	</columnFooter>
