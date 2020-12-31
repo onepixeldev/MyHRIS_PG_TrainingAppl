@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR061" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="40" bottomMargin="40" uuid="3b1bb21e-980a-4e25-b328-6872df917c0a">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR061" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="40" bottomMargin="40" uuid="3b1bb21e-980a-4e25-b328-6872df917c0a">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.4.7:8080/jasperserver/"/>
@@ -8,11 +8,11 @@
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR061_files/main_jrxml"/>
 	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR061"/>
 	<subDataset name="FACILITATOR" uuid="83db9772-1b42-4dda-b3db-0d9df9e71182">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="REFID" class="java.lang.String"/>
 		<queryString language="plsql">
-			<![CDATA[SELECT TF_TRAINING_REFID, TF_FACILITATOR_ID,TF_TYPE,
+			<![CDATA[SELECT TF_TRAINING_REFID AS "TF_TRAINING_REFID", TF_FACILITATOR_ID AS "TF_FACILITATOR_ID",TF_TYPE AS "TF_TYPE",
 CASE 
 WHEN TF_TYPE = 'EXTERNAL'
 THEN 
@@ -23,19 +23,22 @@ ELSE
 (
   SELECT SM_STAFF_NAME FROM STAFF_MAIN WHERE SM_STAFF_ID = TF_FACILITATOR_ID
 )
-END AS FACI_NAME
+END AS "FACI_NAME"
 FROM TRAINING_FACILITATOR
 WHERE  TF_TRAINING_REFID = $P{REFID} 
-ORDER BY 2]]>
+ORDER BY "TF_FACILITATOR_ID"]]>
 		</queryString>
 		<field name="TF_TRAINING_REFID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TF_TRAINING_REFID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_facilitator"/>
 		</field>
 		<field name="TF_FACILITATOR_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TF_FACILITATOR_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_facilitator"/>
 		</field>
 		<field name="TF_TYPE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TF_TYPE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_facilitator"/>
 		</field>
 		<field name="FACI_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="FACI_NAME"/>
@@ -64,7 +67,7 @@ AND TAS_ASSESSMENT_TYPE = 'SUBJECTIVE'
 AND (STA_SUBJECTIVE_ANSWER IS NOT NULL OR STA_SUBJECTIVE_ANSWER <> '')
 AND ($P{REFID} IS NULL OR ($P{REFID} IS NOT NULL AND TH_REF_ID = $P{REFID})) 
 AND ($P{YEAR_YEAR} IS NULL OR ($P{YEAR_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR}))  
-ORDER BY 1,7,9]]>
+ORDER BY "TH_REF_ID","TAS_ORDERING","STA_ASSESSMENT_CODE"]]>
 	</queryString>
 	<field name="TH_REF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>

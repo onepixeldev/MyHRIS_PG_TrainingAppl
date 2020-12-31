@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR062" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="98fabab0-0276-4657-926c-d7a15f5324ad">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR062" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="98fabab0-0276-4657-926c-d7a15f5324ad">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR062_files/main_jrxml"/>
@@ -35,30 +35,30 @@
 		</box>
 	</style>
 	<subDataset name="LIST_MARK" uuid="3ebde0c5-ebc1-4085-b0af-feb2463bfbf5">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="REFID" class="java.lang.String"/>
 		<parameter name="YEAR_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT TID1, 
-TH_DATE_FROM, 
-TAS_ORDERING,
-TC1, 
-TAS_DESC, 
-CF_MARK1, 
-CF_MARK2, 
-CF_MARK3, 
-CF_MARK4, 
-CF_MARK5, 
-CF_TOTAL,
-ROUND((CF_MARK1 / CF_TOTAL)*100,1) CF_PERCENTM1,
-ROUND((CF_MARK2 / CF_TOTAL)*100,1) CF_PERCENTM2,
-ROUND((CF_MARK3 / CF_TOTAL)*100,1) CF_PERCENTM3,
-ROUND((CF_MARK4 / CF_TOTAL)*100,1) CF_PERCENTM4,
-ROUND((CF_MARK5 / CF_TOTAL)*100,1) CF_PERCENTM5,
-TH_TRAINING_TITLE,
-DATE_FROM_TO,
-TH_TRAINING_VENUE
+			<![CDATA[SELECT TID1 AS "TID1", 
+TH_DATE_FROM AS "TH_DATE_FROM", 
+TAS_ORDERING::NUMERIC AS "TAS_ORDERING",
+TC1 AS "TC1", 
+TAS_DESC AS "TAS_DESC", 
+CF_MARK1::NUMERIC AS "CF_MARK1", 
+CF_MARK2::NUMERIC AS "CF_MARK2", 
+CF_MARK3::NUMERIC AS "CF_MARK3", 
+CF_MARK4::NUMERIC AS "CF_MARK4", 
+CF_MARK5::NUMERIC AS "CF_MARK5", 
+CF_TOTAL::NUMERIC AS "CF_TOTAL",
+ROUND((CF_MARK1 / CF_TOTAL)*100,1) AS "CF_PERCENTM1",
+ROUND((CF_MARK2 / CF_TOTAL)*100,1) AS "CF_PERCENTM2",
+ROUND((CF_MARK3 / CF_TOTAL)*100,1) AS "CF_PERCENTM3",
+ROUND((CF_MARK4 / CF_TOTAL)*100,1) AS "CF_PERCENTM4",
+ROUND((CF_MARK5 / CF_TOTAL)*100,1) AS "CF_PERCENTM5",
+TH_TRAINING_TITLE AS "TH_TRAINING_TITLE",
+DATE_FROM_TO AS "DATE_FROM_TO",
+TH_TRAINING_VENUE AS "TH_TRAINING_VENUE"
 FROM
 (
     SELECT DISTINCT TH_REF_ID TID1,
@@ -66,8 +66,8 @@ FROM
     TAS_CODE TC1,
     TAS_DESC,
     TAS_ORDERING,
-    INITCAP(TO_CHAR(TH_DATE_FROM,'DAY','NLS_DATE_LANGUAGE = MALAY')) DAY1,
-    INITCAP(TO_CHAR(TH_DATE_TO,'DAY','NLS_DATE_LANGUAGE = MALAY')) DAY2,
+    INITCAP(calendar_get_day_malay(TO_CHAR(TH_DATE_FROM,'DAY')))  AS "DAY1",
+	INITCAP(calendar_get_day_malay(TO_CHAR(TH_DATE_FROM,'DAY'))) AS "DAY2",
     TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') DATE_FROM_TO,
     TH_TRAINING_TITLE,
     TH_TRAINING_VENUE
@@ -80,7 +80,7 @@ FROM
     AND TAS_DESC IS NOT NULL
     AND ($P{REFID} IS NULL OR ($P{REFID} IS NOT NULL AND TH_REF_ID = $P{REFID}))  
     AND ($P{YEAR_YEAR} IS NULL OR ($P{YEAR_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR}))  
-) 
+) AS A
 LEFT JOIN
 (
     SELECT COUNT(STA_MARK) CF_MARK1, TH_REF_ID TID2, STA_ASSESSMENT_CODE TC2
@@ -92,7 +92,7 @@ LEFT JOIN
     AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
     AND STA_MARK = 1
     GROUP BY TH_REF_ID, STA_ASSESSMENT_CODE
-) ON TID2 = TID1 AND TC2 = TC1
+) AS B ON TID2 = TID1 AND TC2 = TC1
 LEFT JOIN
 (
     SELECT COUNT(STA_MARK) CF_MARK2, TH_REF_ID TID3, STA_ASSESSMENT_CODE TC3
@@ -104,7 +104,7 @@ LEFT JOIN
     AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
     AND STA_MARK = 2
     GROUP BY TH_REF_ID, STA_ASSESSMENT_CODE
-) ON TID3 = TID1 AND TC3 = TC1
+) AS C ON TID3 = TID1 AND TC3 = TC1
 LEFT JOIN
 (
     SELECT COUNT(STA_MARK) CF_MARK3, TH_REF_ID TID4, STA_ASSESSMENT_CODE TC4
@@ -116,7 +116,7 @@ LEFT JOIN
     AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
     AND STA_MARK = 3
     GROUP BY TH_REF_ID, STA_ASSESSMENT_CODE
-) ON TID4 = TID1 AND TC4 = TC1
+) AS D ON TID4 = TID1 AND TC4 = TC1
 LEFT JOIN
 (
     SELECT COUNT(STA_MARK) CF_MARK4, TH_REF_ID TID5, STA_ASSESSMENT_CODE TC5
@@ -128,7 +128,7 @@ LEFT JOIN
     AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
     AND STA_MARK = 4
     GROUP BY TH_REF_ID, STA_ASSESSMENT_CODE
-) ON TID5 = TID1 AND TC5 = TC1
+) AS E ON TID5 = TID1 AND TC5 = TC1
 LEFT JOIN
 (
     SELECT COUNT(STA_MARK) CF_MARK5, TH_REF_ID TID6, STA_ASSESSMENT_CODE TC6
@@ -140,7 +140,7 @@ LEFT JOIN
     AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
     AND STA_MARK = 5
     GROUP BY TH_REF_ID, STA_ASSESSMENT_CODE
-) ON TID6 = TID1 AND TC6 = TC1
+) AS F ON TID6 = TID1 AND TC6 = TC1
 LEFT JOIN
 (
     SELECT COUNT(STA_MARK) CF_TOTAL, TH_REF_ID TID7, STA_ASSESSMENT_CODE TC7
@@ -151,23 +151,28 @@ LEFT JOIN
     AND TAS_TYPE = 'TRAINING'
     AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
     GROUP BY TH_REF_ID, STA_ASSESSMENT_CODE
-) ON TID7 = TID1 AND TC7 = TC1
+) AS G ON TID7 = TID1 AND TC7 = TC1
 ORDER BY TH_DATE_FROM,TAS_ORDERING]]>
 		</queryString>
 		<field name="TID1" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TID1"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="TH_DATE_FROM" class="java.sql.Timestamp">
 			<property name="com.jaspersoft.studio.field.label" value="TH_DATE_FROM"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="TAS_ORDERING" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="TAS_ORDERING"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_assessment_setup"/>
 		</field>
 		<field name="TC1" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TC1"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_assessment_setup"/>
 		</field>
 		<field name="TAS_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TAS_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_assessment_setup"/>
 		</field>
 		<field name="CF_MARK1" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="CF_MARK1"/>
@@ -204,12 +209,14 @@ ORDER BY TH_DATE_FROM,TAS_ORDERING]]>
 		</field>
 		<field name="TH_TRAINING_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="DATE_FROM_TO" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DATE_FROM_TO"/>
 		</field>
 		<field name="TH_TRAINING_VENUE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_VENUE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<variable name="TITLE" class="java.lang.String">
 			<variableExpression><![CDATA[$F{TH_TRAINING_TITLE}]]></variableExpression>
@@ -224,8 +231,11 @@ ORDER BY TH_DATE_FROM,TAS_ORDERING]]>
 	<parameter name="REFID" class="java.lang.String"/>
 	<parameter name="YEAR_YEAR" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT * FROM DUAL]]>
+		<![CDATA[SELECT '' AS "DUMMY"]]>
 	</queryString>
+	<field name="DUMMY" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="DUMMY"/>
+	</field>
 	<variable name="TITLE" class="java.lang.String"/>
 	<variable name="DATE" class="java.lang.String"/>
 	<variable name="TEMPAT" class="java.lang.String"/>

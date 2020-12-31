@@ -94,7 +94,7 @@ FROM
         ) AS TBL1
         GROUP BY DM_DEPT_DESC,STH_STAFF_ID
     ) AS TBL2
-    WHERE extract(days FROM TOT_DAYS::interval)::numeric(9,2) < 7
+    WHERE extract(day FROM TOT_DAYS::interval)::numeric(9,2) < 7
     GROUP BY DM_DEPT_DESC
 )
 AS TBL3 LEFT JOIN 
