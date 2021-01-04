@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR064" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="98fabab0-0276-4657-926c-d7a15f5324ad">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR064" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="98fabab0-0276-4657-926c-d7a15f5324ad">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR064_files/main_jrxml"/>
@@ -11,22 +11,22 @@
 	<parameter name="YEAR_YEAR" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT
-REFID,
-TH_DATE_FROM,
-TAS_CODE,
-TH_TRAINING_TITLE,
-DATE_FROM_TO,
-TH_TRAINING_VENUE,
-TF_FACILITATOR_ID,
-FACI_NAME,
-TAS_DESC,
-CF_FULLMARKS,
-CF_JUMLAH,
+REFID AS "REFID",
+TH_DATE_FROM AS "TH_DATE_FROM",
+TAS_CODE AS "TAS_CODE",
+TH_TRAINING_TITLE AS "TH_TRAINING_TITLE",
+DATE_FROM_TO AS "DATE_FROM_TO",
+TH_TRAINING_VENUE AS "TH_TRAINING_VENUE",
+TF_FACILITATOR_ID AS "TF_FACILITATOR_ID",
+FACI_NAME AS "FACI_NAME",
+TAS_DESC AS "TAS_DESC",
+CF_FULLMARKS::NUMERIC AS "CF_FULLMARKS",
+CF_JUMLAH::NUMERIC AS "CF_JUMLAH",
 CASE
-WHEN CF_JUMLAH > 0 AND CF_FULLMARKS > 0 
-THEN ROUND((CF_JUMLAH / CF_FULLMARKS) * 100,0)
+WHEN CF_JUMLAH::NUMERIC > 0 AND CF_FULLMARKS::NUMERIC > 0 
+THEN ROUND((CF_JUMLAH::NUMERIC / CF_FULLMARKS::NUMERIC) * 100,0)
 ELSE 0
-END CF_PERCENTAGEMARK
+END AS "CF_PERCENTAGEMARK"
 FROM
 (
   SELECT DISTINCT 
@@ -62,7 +62,7 @@ FROM
   AND TAS_DESC IS NOT NULL
   AND ($P{REFID} IS NULL OR ($P{REFID} IS NOT NULL AND TH_REF_ID = $P{REFID})) 
   AND ($P{YEAR_YEAR} IS NULL OR ($P{YEAR_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR}))
-)
+) AS A
 LEFT JOIN
 (
   SELECT (COUNT(STA_MARK)*5) CF_FULLMARKS,
@@ -78,10 +78,11 @@ LEFT JOIN
   AND TAS_TYPE = 'FACILITATOR'
   AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
   GROUP BY STA_ASSESSMENT_CODE, TH_REF_ID, STA_FACILITATOR
-) ON (SAC = TAS_CODE AND TID = REFID AND FID = TF_FACILITATOR_ID)
+) AS B
+ON (SAC = TAS_CODE AND TID = REFID AND FID = TF_FACILITATOR_ID)
 LEFT JOIN 
 (
-  SELECT NVL(SUM(STA_MARK),0) CF_JUMLAH, 
+  SELECT COALESCE(SUM(STA_MARK),0) CF_JUMLAH, 
   STA_ASSESSMENT_CODE SAC2,  
   TH_REF_ID TID2, 
   STA_FACILITATOR FID2
@@ -94,35 +95,43 @@ LEFT JOIN
   AND TAS_TYPE = 'FACILITATOR'
   AND TAS_ASSESSMENT_TYPE = 'OBJECTIVE'
   GROUP BY STA_ASSESSMENT_CODE, TH_REF_ID, STA_FACILITATOR
-) ON (SAC2 = TAS_CODE AND TID2 = REFID AND FID2 = TF_FACILITATOR_ID)
+) AS C 
+ON (SAC2 = TAS_CODE AND TID2 = REFID AND FID2 = TF_FACILITATOR_ID)
 ORDER BY TF_FACILITATOR_ID, TAS_CODE]]>
 	</queryString>
 	<field name="REFID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="REFID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TH_DATE_FROM" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="TH_DATE_FROM"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TAS_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TAS_CODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_assessment_setup"/>
 	</field>
 	<field name="TH_TRAINING_TITLE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="DATE_FROM_TO" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DATE_FROM_TO"/>
 	</field>
 	<field name="TH_TRAINING_VENUE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_VENUE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TF_FACILITATOR_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TF_FACILITATOR_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_facilitator"/>
 	</field>
 	<field name="FACI_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="FACI_NAME"/>
 	</field>
 	<field name="TAS_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TAS_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_assessment_setup"/>
 	</field>
 	<field name="CF_FULLMARKS" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="CF_FULLMARKS"/>

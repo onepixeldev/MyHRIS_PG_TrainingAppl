@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR087" pageWidth="842" pageHeight="595" columnWidth="742" leftMargin="50" rightMargin="50" topMargin="20" bottomMargin="80" uuid="23877205-5ff4-4830-9af3-e4c3034b0421">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR087" pageWidth="842" pageHeight="595" whenNoDataType="AllSectionsNoDetail" columnWidth="742" leftMargin="50" rightMargin="50" topMargin="20" bottomMargin="80" uuid="23877205-5ff4-4830-9af3-e4c3034b0421">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -35,19 +35,24 @@
 		</box>
 	</style>
 	<subDataset name="PROG_LIST" uuid="7c8e8470-c077-4354-a46c-8baa8d7e06c7">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT 'Program Bitara UPSI' BHTITLE,BH_REF_ID,BH_TITLE,
-TO_CHAR(BH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(BH_END_DATE,'dd/mm/yyyy') BH_DATE,
-BH_VENUE,BH_DATE_FROM,COUNT(SB_STAFF_ID) SB_TOTAL
+			<![CDATA[SELECT 
+'Program Bitara UPSI' AS "BHTITLE",
+BH_REF_ID AS "BH_REF_ID",
+BH_TITLE AS "BH_TITLE",
+TO_CHAR(BH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(BH_END_DATE,'dd/mm/yyyy') AS "BH_DATE",
+BH_VENUE AS "BH_VENUE",
+BH_DATE_FROM AS "BH_DATE_FROM",
+COUNT(SB_STAFF_ID)::NUMERIC AS "SB_TOTAL"
 FROM BITARA_HEAD,STAFF_BITARA
 WHERE BH_REF_ID=SB_REF_ID
 AND SB_STATUS='APPROVED'
 AND SB_ATTENDANCE='Y'
 AND TO_CHAR(BH_DATE_FROM,'yyyy')=$P{TRAINING_YEAR}  
-GROUP BY 'Program Bitara UPSI',BH_REF_ID,BH_TITLE,
+GROUP BY "BHTITLE",BH_REF_ID,BH_TITLE,
 TO_CHAR(BH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(BH_END_DATE,'dd/mm/yyyy'),
 BH_VENUE,BH_DATE_FROM
 ORDER BY BH_DATE_FROM]]>
@@ -57,18 +62,22 @@ ORDER BY BH_DATE_FROM]]>
 		</field>
 		<field name="BH_REF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_REF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="BH_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_TITLE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="BH_DATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_DATE"/>
 		</field>
 		<field name="BH_VENUE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_VENUE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="BH_DATE_FROM" class="java.sql.Timestamp">
 			<property name="com.jaspersoft.studio.field.label" value="BH_DATE_FROM"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="SB_TOTAL" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="SB_TOTAL"/>
@@ -76,7 +85,7 @@ ORDER BY BH_DATE_FROM]]>
 	</subDataset>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT * FROM DUAL]]>
+		<![CDATA[SELECT '' AS "DUMMY"]]>
 	</queryString>
 	<field name="DUMMY" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DUMMY"/>
