@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR123" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="bf536f7a-1256-4c37-8d3b-bce6d7103a0a">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR123_files/main_jrxml"/>
@@ -549,11 +549,11 @@ FROM
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString language="SQL">
 		<![CDATA[SELECT 
-TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'),  'MONTH', 'NLS_DATE_LANGUAGE = MALAY') MONTH_FROM,
-TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'),  'YYYY') YEAR_FROM,
-TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM/YYYY'),  'MONTH', 'NLS_DATE_LANGUAGE = MALAY') MONTH_TO,
-TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM/YYYY'),  'YYYY') YEAR_TO
-FROM DUAL]]>
+cal_convert_to_malay_date($P{TRAINING_MONTH},  'MONTH') AS "MONTH_FROM",
+TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'),  'YYYY') AS "YEAR_FROM",
+cal_convert_to_malay_date($P{TRAINING_MONTH2},  'MONTH') AS "MONTH_TO",
+TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM/YYYY'),  'YYYY') AS "YEAR_TO"
+]]>
 	</queryString>
 	<field name="MONTH_FROM" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="MONTH_FROM"/>
