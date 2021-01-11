@@ -62,7 +62,7 @@
 		</box>
 	</style>
 	<subDataset name="BITARA" uuid="56cf50f5-19a6-4e9d-8554-dd82a6d2a763">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_OPTION" class="java.lang.String"/>
 		<parameter name="P_PTJ" class="java.lang.String"/>
@@ -71,18 +71,18 @@
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT 
-BH_REF_ID,
-BHTITLE, 
-BH_TITLE,
-BH_DATE,
-TSL_DESC,
-COORDINATOR,
-BH_VENUE,
-BH_PARTICIPANT,
-SB_TOTAL,
-ROUND((SB_TOTAL / BH_PARTICIPANT) * 100,0) CF_PERATUS_BITARA,
-CF_THADIR,
-ROUND((CF_THADIR / BH_PARTICIPANT) * 100,0) CF_PERATUS_THADIR
+BH_REF_ID AS "BH_REF_ID",
+BHTITLE AS "BHTITLE", 
+BH_TITLE AS "BH_TITLE",
+BH_DATE AS "BH_DATE",
+TSL_DESC AS "TSL_DESC",
+COORDINATOR AS "COORDINATOR",
+BH_VENUE AS "BH_VENUE",
+BH_PARTICIPANT::NUMERIC AS "BH_PARTICIPANT",
+SB_TOTAL::NUMERIC AS "SB_TOTAL",
+ROUND((SB_TOTAL::NUMERIC / BH_PARTICIPANT::NUMERIC) * 100,0)::NUMERIC AS "CF_PERATUS_BITARA",
+CF_THADIR::NUMERIC AS "CF_THADIR",
+ROUND((CF_THADIR::NUMERIC / BH_PARTICIPANT::NUMERIC) * 100,0)::NUMERIC AS "CF_PERATUS_THADIR"
 FROM
 (
     SELECT
@@ -107,50 +107,57 @@ FROM
         AND TO_CHAR(BH_DATE_FROM,'yyyy')=$P{TRAINING_YEAR}
         AND (BH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
         AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-        AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND $P{P_OPTION}='INTERNAL'))
-        AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND $P{P_PTJ} = $P{P_PTJ}))
-        GROUP BY 'Program Bitara UPSI',BH_REF_ID,BH_TITLE,
+        AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND $P{P_OPTION}='INTERNAL'))
+        AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND $P{P_PTJ} = $P{P_PTJ}))
+        GROUP BY BHTITLE,BH_REF_ID,BH_TITLE,
         TO_CHAR(BH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(BH_END_DATE,'dd/mm/yyyy'),
         BH_VENUE,BH_DATE_FROM,BH_PARTICIPANT
         ORDER BY BH_DATE_FROM
-    )
+    ) AS D
 )
+AS A
 LEFT JOIN
 (
     SELECT TSL_DESC, THD_REF_ID THD_REF_ID1
     FROM TRAINING_SECTOR_LEVEL,TRAINING_HEAD_DETL 
     WHERE TSL_CODE = THD_COORDINATOR_SECTOR
-) ON THD_REF_ID1 = BH_REF_ID
+) AS B ON THD_REF_ID1 = BH_REF_ID
 LEFT JOIN
 (
     SELECT SM_STAFF_NAME||' ('||THD_COORDINATOR||')' AS COORDINATOR, THD_REF_ID THD_REF_ID2
     FROM STAFF_MAIN,TRAINING_HEAD_DETL
     WHERE SM_STAFF_ID = THD_COORDINATOR
-) ON THD_REF_ID2 = BH_REF_ID]]>
+) AS C 
+ON THD_REF_ID2 = BH_REF_ID]]>
 		</queryString>
 		<field name="BH_REF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_REF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="BHTITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BHTITLE"/>
 		</field>
 		<field name="BH_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_TITLE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="BH_DATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_DATE"/>
 		</field>
 		<field name="TSL_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TSL_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_sector_level"/>
 		</field>
 		<field name="COORDINATOR" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="COORDINATOR"/>
 		</field>
 		<field name="BH_VENUE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="BH_VENUE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="BH_PARTICIPANT" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="BH_PARTICIPANT"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="bitara_head"/>
 		</field>
 		<field name="SB_TOTAL" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="SB_TOTAL"/>
@@ -166,7 +173,7 @@ LEFT JOIN
 		</field>
 	</subDataset>
 	<subDataset name="NON_BITARA" uuid="8f08c176-023d-4f6c-843b-2821f1d3e521">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="COORDINATOR" class="java.lang.String"/>
 		<parameter name="P_OPTION" class="java.lang.String"/>
@@ -193,27 +200,27 @@ WHEN
 	    AND TO_CHAR(BH_DATE_FROM,'yyyy')=$P{TRAINING_YEAR}
 	    AND (BH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
 	    AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-	    AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND $P{P_OPTION}='INTERNAL'))
-	    AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND $P{P_PTJ} = $P{P_PTJ}))
-	    GROUP BY 'Program Bitara UPSI',BH_REF_ID,BH_TITLE,
+	    AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND $P{P_OPTION}='INTERNAL'))
+	    AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND $P{P_PTJ} = $P{P_PTJ}))
+	    GROUP BY BHTITLE,BH_REF_ID,BH_TITLE,
 	    TO_CHAR(BH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(BH_END_DATE,'dd/mm/yyyy'),
 	    BH_VENUE,BH_DATE_FROM,BH_PARTICIPANT
-    )
-) !=0 THEN 1
-ELSE 0
-END AS BITARA,
-TH_REF_ID,
-TH_TRAINING_TITLE,
-TH_DATE,
-TSL_DESC,
-COORDINATOR,
-TH_TRAINING_VENUE,
-TH_MAX_PARTICIPANT,
-STH_TOTAL,
-ROUND((STH_TOTAL / TH_MAX_PARTICIPANT) * 100,0) CF_PERATUS,
-CF_TIDAKHADIR,
-ROUND((CF_TIDAKHADIR / TH_MAX_PARTICIPANT) * 100,0) CF_PERATUS_TIDAKHADIR,
-TH_DATE_FROM
+    ) AS E
+) !=0 THEN '1'::NUMERIC
+ELSE '0'::NUMERIC
+END AS  "BITARA",
+TH_REF_ID AS "TH_REF_ID",
+TH_TRAINING_TITLE AS "TH_TRAINING_TITLE",
+TH_DATE AS "TH_DATE",
+TSL_DESC AS "TSL_DESC",
+COORDINATOR AS "COORDINATOR",
+TH_TRAINING_VENUE AS "TH_TRAINING_VENUE",
+TH_MAX_PARTICIPANT::NUMERIC AS "TH_MAX_PARTICIPANT",
+STH_TOTAL::NUMERIC AS "STH_TOTAL",
+ROUND((STH_TOTAL::NUMERIC / TH_MAX_PARTICIPANT::NUMERIC) * 100,0) AS "CF_PERATUS",
+CF_TIDAKHADIR::NUMERIC AS "CF_TIDAKHADIR",
+ROUND((CF_TIDAKHADIR::NUMERIC / TH_MAX_PARTICIPANT::NUMERIC) * 100,0) AS "CF_PERATUS_TIDAKHADIR",
+TH_DATE_FROM AS "TH_DATE_FROM"
 FROM
 (
     SELECT TH_REF_ID,TH_TRAINING_TITLE,LEVEL2,TH_DATE,TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,THD_COORDINATOR,
@@ -231,13 +238,13 @@ FROM
     AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
     AND TH_REF_ID = THD_REF_ID
     AND TH_CATEGORY <> 'AKEPT'
-    AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = NVL($P{P_OPTION},'INTERNAL')))
+    AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = COALESCE($P{P_OPTION},'INTERNAL')))
     AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
     AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
     AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-    AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
-    AND ($P{SECTOR} IS NULL OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
-    AND ($P{COORDINATOR} IS NULL OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
+    AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
+    AND (($P{SECTOR} IS NULL OR $P{SECTOR} = '') OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
+    AND (($P{COORDINATOR} IS NULL OR $P{COORDINATOR} = '') OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
     AND STH_PARTICIPANT_ROLE = 'D'
     GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
     TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
@@ -254,13 +261,13 @@ FROM
     AND TH_INTERNAL_EXTERNAL = 'EXTERNAL_AGENCY'
     AND TH_REF_ID = THD_REF_ID
     AND TH_CATEGORY <> 'AKEPT'
-    AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = NVL($P{P_OPTION},'INTERNAL')))
+    AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = COALESCE($P{P_OPTION},'INTERNAL')))
     AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
     AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
     AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-    AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
-    AND ($P{SECTOR} IS NULL OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
-    AND ($P{COORDINATOR} IS NULL OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
+    AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
+    AND (($P{SECTOR} IS NULL OR $P{SECTOR} = '') OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
+    AND (($P{COORDINATOR} IS NULL OR $P{COORDINATOR} = '') OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
     AND STH_PARTICIPANT_ROLE = 'D'
     GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
     TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
@@ -281,30 +288,30 @@ FROM
     AND STD_ATTEND IN ('Y','A')
     AND TH_REF_ID = THD_REF_ID
     AND TH_CATEGORY <> 'AKEPT'
-    AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = NVL($P{P_OPTION},'INTERNAL')))
+    AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = COALESCE($P{P_OPTION},'INTERNAL')))
     AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
     AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
     AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-    AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
-    AND ($P{SECTOR} IS NULL OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
-    AND ($P{COORDINATOR} IS NULL OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
+    AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
+    AND (($P{SECTOR} IS NULL OR $P{SECTOR} = '') OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
+    AND (($P{COORDINATOR} IS NULL OR $P{COORDINATOR} = '') OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
     AND STH_PARTICIPANT_ROLE = 'D'
     GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
     TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
     TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM,TH_MAX_PARTICIPANT
-    )
+    ) AS A
     --ORDER BY TH_DATE_FROM
-)
+) AS B
 LEFT JOIN
 (
     SELECT TSL_DESC, TSL_CODE
     FROM TRAINING_SECTOR_LEVEL
-) ON TSL_CODE = LEVEL2
+) AS C ON TSL_CODE = LEVEL2
 LEFT JOIN
 (
     SELECT SM_STAFF_NAME||' ('||SM_STAFF_ID||')' AS COORDINATOR, SM_STAFF_ID
     FROM STAFF_MAIN
-) ON SM_STAFF_ID = THD_COORDINATOR
+) AS D ON SM_STAFF_ID = THD_COORDINATOR
 ORDER BY TH_DATE_FROM]]>
 		</queryString>
 		<field name="BITARA" class="java.math.BigDecimal">
@@ -321,6 +328,7 @@ ORDER BY TH_DATE_FROM]]>
 		</field>
 		<field name="TSL_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TSL_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_sector_level"/>
 		</field>
 		<field name="COORDINATOR" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="COORDINATOR"/>
@@ -348,33 +356,35 @@ ORDER BY TH_DATE_FROM]]>
 		</field>
 	</subDataset>
 	<subDataset name="ANJURAN" uuid="479677f9-30cb-436a-8eab-57d7b77dedcf">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_PTJ" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT TOH_ORG_DESC 
+			<![CDATA[SELECT TOH_ORG_DESC AS "TOH_ORG_DESC"
 FROM  TRAINING_ORGANIZER_HEAD
 WHERE TOH_ORG_CODE = $P{P_PTJ}]]>
 		</queryString>
 		<field name="TOH_ORG_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TOH_ORG_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_organizer_head"/>
 		</field>
 	</subDataset>
 	<subDataset name="SECTOR_LVL" uuid="e01093ce-5455-444b-b628-4f9ce3caef44">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="SECTOR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT TSL_DESC
+			<![CDATA[SELECT TSL_DESC AS "TSL_DESC"
 FROM  TRAINING_SECTOR_LEVEL 
 WHERE TSL_CODE = $P{SECTOR}]]>
 		</queryString>
 		<field name="TSL_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TSL_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_sector_level"/>
 		</field>
 	</subDataset>
 	<subDataset name="BIG_TOTAL" uuid="97e561b0-b02a-42a2-91a6-f267e0539f50">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="COORDINATOR" class="java.lang.String"/>
 		<parameter name="P_OPTION" class="java.lang.String"/>
@@ -385,11 +395,11 @@ WHERE TSL_CODE = $P{SECTOR}]]>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
-TOTAL_TAWARAN,
-TOTAL_HADIR,
-TOTAL_THADIR,
-ROUND((TOTAL_HADIR / TOTAL_TAWARAN) * 100,0) TOTAL_PERCENT_HADIR,
-ROUND((TOTAL_THADIR / TOTAL_TAWARAN) * 100,0) TOTAL_PERCENT_THADIR
+TOTAL_TAWARAN::NUMERIC AS "TOTAL_TAWARAN",
+TOTAL_HADIR::NUMERIC AS "TOTAL_HADIR",
+TOTAL_THADIR::NUMERIC AS "TOTAL_THADIR",
+ROUND((TOTAL_HADIR::NUMERIC / TOTAL_TAWARAN::NUMERIC) * 100,0) AS "TOTAL_PERCENT_HADIR",
+ROUND((TOTAL_THADIR::NUMERIC / TOTAL_TAWARAN::NUMERIC) * 100,0) AS "TOTAL_PERCENT_THADIR"
 FROM
 (
     SELECT
@@ -424,14 +434,14 @@ FROM
                 AND TO_CHAR(BH_DATE_FROM,'yyyy')=$P{TRAINING_YEAR}
                 AND (BH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
                 AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-                AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND $P{P_OPTION}='INTERNAL'))
-                AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND $P{P_PTJ} = $P{P_PTJ}))
-                GROUP BY 'Program Bitara UPSI',BH_REF_ID,BH_TITLE,
+                AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND $P{P_OPTION}='INTERNAL'))
+                AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND $P{P_PTJ} = $P{P_PTJ}))
+                GROUP BY BHTITLE,BH_REF_ID,BH_TITLE,
                 TO_CHAR(BH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(BH_END_DATE,'dd/mm/yyyy'),
                 BH_VENUE,BH_DATE_FROM,BH_PARTICIPANT
                 ORDER BY BH_DATE_FROM
-            )
-        )
+            ) AS G
+        ) AS F
         UNION
         (
             SELECT
@@ -444,85 +454,86 @@ FROM
             (
                 SELECT TH_REF_ID,TH_TRAINING_TITLE,LEVEL2,TH_DATE,TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,THD_COORDINATOR,
                 TH_DATE_FROM,STH_TOTAL,(TH_MAX_PARTICIPANT - STH_TOTAL) CF_TIDAKHADIR
-                FROM (
-                SELECT TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR LEVEL2,THD_COORDINATOR,
-                TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
-                TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,
-                TH_DATE_FROM,COUNT(STH_STAFF_ID) STH_TOTAL
-                FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_HEAD_DETL
-                WHERE TH_REF_ID=STH_TRAINING_REFID
-                AND TH_STATUS = 'APPROVE'
-                AND STH_STATUS = 'APPROVE'
-                AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
-                AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
-                AND TH_REF_ID = THD_REF_ID
-                AND TH_CATEGORY <> 'AKEPT'
-                AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = NVL($P{P_OPTION},'INTERNAL')))
-                AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
-                AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
-                AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-                AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
-                AND ($P{SECTOR} IS NULL OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
-                AND ($P{COORDINATOR} IS NULL OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
-                AND STH_PARTICIPANT_ROLE = 'D'
-                GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
-                TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
-                TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM,TH_MAX_PARTICIPANT
-                UNION
-                SELECT TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR LEVEL2,THD_COORDINATOR,
-                TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
-                TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,
-                TH_DATE_FROM,COUNT(STH_STAFF_ID) STH_TOTAL
-                FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_HEAD_DETL
-                WHERE TH_REF_ID=STH_TRAINING_REFID
-                AND TH_STATUS = 'APPROVE'
-                AND STH_STATUS = 'APPROVE'
-                AND TH_INTERNAL_EXTERNAL = 'EXTERNAL_AGENCY'
-                AND TH_REF_ID = THD_REF_ID
-                AND TH_CATEGORY <> 'AKEPT'
-                AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = NVL($P{P_OPTION},'INTERNAL')))
-                AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
-                AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
-                AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-                AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
-                AND ($P{SECTOR} IS NULL OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
-                AND ($P{COORDINATOR} IS NULL OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
-                AND STH_PARTICIPANT_ROLE = 'D'
-                GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
-                TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
-                TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM,TH_MAX_PARTICIPANT
-                UNION
-                SELECT TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR LEVEL2,THD_COORDINATOR,
-                TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
-                TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,
-                TH_DATE_FROM,COUNT(STH_STAFF_ID) STH_TOTAL
-                FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_HEAD_DETL,STAFF_TRAINING_DETL
-                WHERE TH_REF_ID=STH_TRAINING_REFID
-                AND TH_STATUS = 'APPROVE'
-                AND STH_STATUS = 'APPROVE'
-                AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
-                AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016'
-                AND STH_TRAINING_REFID = STD_TRAINING_REFID
-                AND STH_STAFF_ID = STD_STAFF_ID
-                AND STD_ATTEND IN ('Y','A')
-                AND TH_REF_ID = THD_REF_ID
-                AND TH_CATEGORY <> 'AKEPT'
-                AND ($P{P_OPTION} IS NULL OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = NVL($P{P_OPTION},'INTERNAL')))
-                AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
-                AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
-                AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
-                AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
-                AND ($P{SECTOR} IS NULL OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
-                AND ($P{COORDINATOR} IS NULL OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
-                AND STH_PARTICIPANT_ROLE = 'D'
-                GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
-                TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
-                TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM,TH_MAX_PARTICIPANT
-                )
-            )
-        )
-    )
-)]]>
+                FROM 
+                (
+                    SELECT TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR LEVEL2,THD_COORDINATOR,
+                    TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
+                    TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,
+                    TH_DATE_FROM,COUNT(STH_STAFF_ID) STH_TOTAL
+                    FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_HEAD_DETL
+                    WHERE TH_REF_ID=STH_TRAINING_REFID
+                    AND TH_STATUS = 'APPROVE'
+                    AND STH_STATUS = 'APPROVE'
+                    AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
+                    AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
+                    AND TH_REF_ID = THD_REF_ID
+                    AND TH_CATEGORY <> 'AKEPT'
+                    AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = COALESCE($P{P_OPTION},'INTERNAL')))
+                    AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
+                    AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
+                    AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
+                    AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
+                    AND (($P{SECTOR} IS NULL OR $P{SECTOR} = '') OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
+                    AND (($P{COORDINATOR} IS NULL OR $P{COORDINATOR} = '') OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
+                    AND STH_PARTICIPANT_ROLE = 'D'
+                    GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
+                    TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
+                    TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM,TH_MAX_PARTICIPANT
+                    UNION
+                    SELECT TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR LEVEL2,THD_COORDINATOR,
+                    TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
+                    TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,
+                    TH_DATE_FROM,COUNT(STH_STAFF_ID) STH_TOTAL
+                    FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_HEAD_DETL
+                    WHERE TH_REF_ID=STH_TRAINING_REFID
+                    AND TH_STATUS = 'APPROVE'
+                    AND STH_STATUS = 'APPROVE'
+                    AND TH_INTERNAL_EXTERNAL = 'EXTERNAL_AGENCY'
+                    AND TH_REF_ID = THD_REF_ID
+                    AND TH_CATEGORY <> 'AKEPT'
+                    AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = COALESCE($P{P_OPTION},'INTERNAL')))
+                    AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
+                    AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
+                    AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
+                    AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
+                    AND (($P{SECTOR} IS NULL OR $P{SECTOR} = '') OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
+                    AND (($P{COORDINATOR} IS NULL OR $P{COORDINATOR} = '') OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
+                    AND STH_PARTICIPANT_ROLE = 'D'
+                    GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
+                    TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
+                    TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM,TH_MAX_PARTICIPANT
+                    UNION
+                    SELECT TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR LEVEL2,THD_COORDINATOR,
+                    TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
+                    TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_MAX_PARTICIPANT,
+                    TH_DATE_FROM,COUNT(STH_STAFF_ID) STH_TOTAL
+                    FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_HEAD_DETL,STAFF_TRAINING_DETL
+                    WHERE TH_REF_ID=STH_TRAINING_REFID
+                    AND TH_STATUS = 'APPROVE'
+                    AND STH_STATUS = 'APPROVE'
+                    AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
+                    AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016'
+                    AND STH_TRAINING_REFID = STD_TRAINING_REFID
+                    AND STH_STAFF_ID = STD_STAFF_ID
+                    AND STD_ATTEND IN ('Y','A')
+                    AND TH_REF_ID = THD_REF_ID
+                    AND TH_CATEGORY <> 'AKEPT'
+                    AND (($P{P_OPTION} IS NULL OR $P{P_OPTION} = '') OR ($P{P_OPTION} IS NOT NULL AND TH_INTERNAL_EXTERNAL = COALESCE($P{P_OPTION},'INTERNAL')))
+                    AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
+                    AND (TH_DATE_FROM BETWEEN TO_DATE($P{TRAINING_MONTH},'mm/yyyy')
+                    AND LAST_DAY(TO_DATE($P{TRAINING_MONTH2},'mm/yyyy')))
+                    AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND TH_ORGANIZER_NAME = $P{P_PTJ}))
+                    AND (($P{SECTOR} IS NULL OR $P{SECTOR} = '') OR ($P{SECTOR} IS NOT NULL AND THD_COORDINATOR_SECTOR  = $P{SECTOR}))
+                    AND (($P{COORDINATOR} IS NULL OR $P{COORDINATOR} = '') OR ($P{COORDINATOR} IS NOT NULL AND THD_COORDINATOR  = $P{COORDINATOR}))
+                    AND STH_PARTICIPANT_ROLE = 'D'
+                    GROUP BY TH_REF_ID,TH_TRAINING_TITLE,THD_COORDINATOR_SECTOR,THD_COORDINATOR,
+                    TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
+                    TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM,TH_MAX_PARTICIPANT
+                ) AS E
+            ) AS D
+        ) 
+    ) AS B
+) AS A]]>
 		</queryString>
 		<field name="TOTAL_TAWARAN" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="TOTAL_TAWARAN"/>
@@ -549,11 +560,36 @@ FROM
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString language="SQL">
 		<![CDATA[SELECT 
-cal_convert_to_malay_date($P{TRAINING_MONTH},  'MONTH') AS "MONTH_FROM",
+CASE TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'), 'MM') 
+WHEN '01' THEN 'JANUARI'
+WHEN '02' THEN 'FEBRUARI'
+WHEN '03' THEN 'MAC'
+WHEN '04' THEN 'APRIL'
+WHEN '05' THEN 'MEI'
+WHEN '06' THEN 'JUN'
+WHEN '07' THEN 'JULAI'
+WHEN '08' THEN 'OGOS'
+WHEN '09' THEN 'SEPTEMBER'
+WHEN '10' THEN 'OKTOBER'
+WHEN '11' THEN 'NOVEMBER'
+WHEN '12' THEN 'DISEMBER'
+END AS "MONTH_FROM",
 TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'),  'YYYY') AS "YEAR_FROM",
-cal_convert_to_malay_date($P{TRAINING_MONTH2},  'MONTH') AS "MONTH_TO",
-TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM/YYYY'),  'YYYY') AS "YEAR_TO"
-]]>
+CASE TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM/YYYY'), 'MM') 
+WHEN '01' THEN 'JANUARI'
+WHEN '02' THEN 'FEBRUARI'
+WHEN '03' THEN 'MAC'
+WHEN '04' THEN 'APRIL'
+WHEN '05' THEN 'MEI'
+WHEN '06' THEN 'JUN'
+WHEN '07' THEN 'JULAI'
+WHEN '08' THEN 'OGOS'
+WHEN '09' THEN 'SEPTEMBER'
+WHEN '10' THEN 'OKTOBER'
+WHEN '11' THEN 'NOVEMBER'
+WHEN '12' THEN 'DISEMBER'
+END AS "MONTH_TO",
+TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM/YYYY'),  'YYYY') AS "YEAR_TO"]]>
 	</queryString>
 	<field name="MONTH_FROM" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="MONTH_FROM"/>

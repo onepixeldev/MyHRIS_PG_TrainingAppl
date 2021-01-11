@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR111" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="87516b50-184e-41cf-a65a-6058cccb25f0">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR111_files/main_jrxml"/>
@@ -62,14 +62,18 @@
 		</box>
 	</style>
 	<subDataset name="COURSE_LIST" uuid="1b69a53f-6c29-429d-a546-9d933e5edd72">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="YEAR_YEAR6" class="java.lang.String"/>
 		<parameter name="P_PTJ" class="java.lang.String"/>
 		<parameter name="P_KURSUS" class="java.lang.String"/>
 		<parameter name="P_STAF" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT DISTINCT STH_STAFF_ID,SM_STAFF_NAME,DM_DEPT_CODE,DM_DEPT_DESC
+			<![CDATA[SELECT DISTINCT 
+STH_STAFF_ID AS "STH_STAFF_ID",
+SM_STAFF_NAME AS "SM_STAFF_NAME",
+DM_DEPT_CODE AS "DM_DEPT_CODE",
+DM_DEPT_DESC AS "DM_DEPT_DESC"
 FROM STAFF_TRAINING_HEAD,STAFF_MAIN,DEPARTMENT_MAIN,TRAINING_HEAD,STAFF_STATUS,STAFF_TRAINING_DETL
 WHERE SM_STAFF_ID = STH_STAFF_ID 
 AND SM_DEPT_CODE = DM_DEPT_CODE
@@ -80,36 +84,42 @@ AND TH_STATUS = 'APPROVE'
 AND STH_STATUS = 'CANCEL'
 AND SM_STAFF_TYPE = 'STAFF'
 AND SS_STATUS_STS = 'ACTIVE'
-AND ($P{YEAR_YEAR6} IS NULL OR ($P{YEAR_YEAR6} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR6}))
-AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND DM_DEPT_CODE = $P{P_PTJ}))
-AND ($P{P_KURSUS} IS NULL OR ($P{P_KURSUS} IS NOT NULL AND TH_REF_ID = $P{P_KURSUS}))
-AND ($P{P_STAF} IS NULL OR ($P{P_STAF} IS NOT NULL AND STH_STAFF_ID = $P{P_STAF}))
+AND (($P{YEAR_YEAR6} IS NULL OR $P{YEAR_YEAR6} = '') OR ($P{YEAR_YEAR6} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR6}))
+AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND DM_DEPT_CODE = $P{P_PTJ}))
+AND (($P{P_KURSUS} IS NULL OR $P{P_KURSUS} = '') OR ($P{P_KURSUS} IS NOT NULL AND TH_REF_ID = $P{P_KURSUS}))
+AND (($P{P_STAF} IS NULL OR $P{P_STAF} = '') OR ($P{P_STAF} IS NOT NULL AND STH_STAFF_ID = $P{P_STAF}))
 ORDER BY STH_STAFF_ID, DM_DEPT_DESC,SM_STAFF_NAME]]>
 		</queryString>
 		<field name="STH_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="STH_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_training_head"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="DM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 		</field>
 		<field name="DM_DEPT_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 		</field>
 	</subDataset>
 	<subDataset name="COURSE_LIST2" uuid="b6725d9c-90b6-4a02-9f9f-813358d90ab7">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="YEAR_YEAR6" class="java.lang.String"/>
 		<parameter name="P_PTJ" class="java.lang.String"/>
 		<parameter name="P_KURSUS" class="java.lang.String"/>
 		<parameter name="P_STAF2" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT DISTINCT TH_TRAINING_TITLE,
-TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
-STD_CANCEL_REASON,TH_DATE_FROM
+			<![CDATA[SELECT DISTINCT 
+TH_TRAINING_TITLE AS "TH_TRAINING_TITLE",
+TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') AS "TH_DATE",
+STD_CANCEL_REASON AS "STD_CANCEL_REASON",
+TH_DATE_FROM AS "TH_DATE_FROM"
 FROM STAFF_TRAINING_HEAD,STAFF_MAIN,DEPARTMENT_MAIN,TRAINING_HEAD,STAFF_STATUS,STAFF_TRAINING_DETL
 WHERE SM_STAFF_ID = STH_STAFF_ID 
 AND SM_DEPT_CODE = DM_DEPT_CODE
@@ -120,23 +130,26 @@ AND TH_STATUS = 'APPROVE'
 AND STH_STATUS = 'CANCEL'
 AND SM_STAFF_TYPE = 'STAFF'
 AND SS_STATUS_STS = 'ACTIVE'
-AND ($P{YEAR_YEAR6} IS NULL OR ($P{YEAR_YEAR6} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR6}))
-AND ($P{P_PTJ} IS NULL OR ($P{P_PTJ} IS NOT NULL AND DM_DEPT_CODE = $P{P_PTJ}))
-AND ($P{P_KURSUS} IS NULL OR ($P{P_KURSUS} IS NOT NULL AND TH_REF_ID = $P{P_KURSUS}))
+AND (($P{YEAR_YEAR6} IS NULL OR $P{YEAR_YEAR6} = '') OR ($P{YEAR_YEAR6} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{YEAR_YEAR6}))
+AND (($P{P_PTJ} IS NULL OR $P{P_PTJ} = '') OR ($P{P_PTJ} IS NOT NULL AND DM_DEPT_CODE = $P{P_PTJ}))
+AND (($P{P_KURSUS} IS NULL OR $P{P_KURSUS} = '') OR ($P{P_KURSUS} IS NOT NULL AND TH_REF_ID = $P{P_KURSUS}))
 AND STH_STAFF_ID = $P{P_STAF2}
 ORDER BY TH_TRAINING_TITLE,TH_DATE_FROM]]>
 		</queryString>
 		<field name="TH_TRAINING_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="TH_DATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_DATE"/>
 		</field>
 		<field name="STD_CANCEL_REASON" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="STD_CANCEL_REASON"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_training_detl"/>
 		</field>
 		<field name="TH_DATE_FROM" class="java.sql.Timestamp">
 			<property name="com.jaspersoft.studio.field.label" value="TH_DATE_FROM"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 	</subDataset>
 	<parameter name="YEAR_YEAR6" class="java.lang.String"/>
@@ -144,8 +157,7 @@ ORDER BY TH_TRAINING_TITLE,TH_DATE_FROM]]>
 	<parameter name="P_KURSUS" class="java.lang.String"/>
 	<parameter name="P_STAF" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MON-YY') CURR_DATE
- FROM DUAL]]>
+		<![CDATA[SELECT TO_CHAR(CURRENT_DATE, 'DD-MON-YY') "CURR_DATE"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

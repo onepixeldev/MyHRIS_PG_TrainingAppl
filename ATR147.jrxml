@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR147" language="groovy" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" uuid="913cd930-f27a-41dc-aa62-d71a6a5fb952">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -18,22 +18,29 @@
 	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR147"/>
 	<parameter name="P_TH_DATE_FROM" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MM-YYYY HH12:MI AM') CURR_DATE,
-TH_REF_ID,UPPER(TH_TRAINING_TITLE) TH_TRAINING_TITLE,
-TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') TH_DATE_FROM, TO_CHAR(TH_DATE_TO,'dd-mm-yyyy') TH_DATE_TO,
-STH_STAFF_ID,TM_TITLE_DESC||' '||SM_STAFF_NAME SM_STAFF_NAME,SM_DEPT_CODE, SS_SERVICE_DESC,SS_SALARY_GRADE,DM_DEPT_DESC,
-STH_STATUS
-FROM STAFF_TRAINING_HEAD STHA,STAFF_MAIN,TRAINING_HEAD THA,TRAINING_TYPE,DEPARTMENT_MAIN, COUNTRY_MAIN, SERVICE_GROUP,STATE_MAIN, SERVICE_SCHEME,TITLE_MAIN
-WHERE SM_STAFF_ID = STH_STAFF_ID
-AND DM_DEPT_CODE = SM_DEPT_CODE
-AND SM_JOB_CODE = SS_SERVICE_CODE
-AND SM_STAS_TITLE = TM_TITLE_CODE
-AND TH_REF_ID = STH_TRAINING_REFID
-AND TH_TRAINING_COUNTRY=CM_COUNTRY_CODE
-AND SM_STATE_CODE(+)=TH_TRAINING_STATE
-AND SG_GROUP_CODE(+)=TH_SERVICE_GROUP
-AND TT_CODE(+) = TH_TYPE
-AND STH_STAFF_ID IN (
+		<![CDATA[SELECT TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH12:MI AM') "CURR_DATE",
+TH_REF_ID AS "TH_REF_ID",
+UPPER(TH_TRAINING_TITLE) "TH_TRAINING_TITLE",
+TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') "TH_DATE_FROM", 
+TO_CHAR(TH_DATE_TO,'dd-mm-yyyy') "TH_DATE_TO",
+STH_STAFF_ID AS "STH_STAFF_ID",
+TM_TITLE_DESC||' '||SM_STAFF_NAME "SM_STAFF_NAME",
+SM_DEPT_CODE AS "SM_DEPT_CODE", 
+SS_SERVICE_DESC AS "SS_SERVICE_DESC",
+SS_SALARY_GRADE AS "SS_SALARY_GRADE",
+DM_DEPT_DESC AS "DM_DEPT_DESC",
+STH_STATUS AS "STH_STATUS"
+FROM STAFF_TRAINING_HEAD
+FULL OUTER JOIN STAFF_MAIN ON SM_STAFF_ID = STH_STAFF_ID
+FULL OUTER JOIN DEPARTMENT_MAIN ON DM_DEPT_CODE = SM_DEPT_CODE
+FULL OUTER JOIN SERVICE_SCHEME ON SM_JOB_CODE = SS_SERVICE_CODE
+FULL OUTER JOIN TITLE_MAIN ON SM_STAS_TITLE = TM_TITLE_CODE
+FULL OUTER JOIN TRAINING_HEAD ON TH_REF_ID = STH_TRAINING_REFID
+FULL OUTER JOIN COUNTRY_MAIN ON TH_TRAINING_COUNTRY=CM_COUNTRY_CODE
+FULL OUTER JOIN STATE_MAIN ON SM_STATE_CODE = TH_TRAINING_STATE
+FULL OUTER JOIN SERVICE_GROUP ON SG_GROUP_CODE = TH_SERVICE_GROUP
+FULL OUTER JOIN TRAINING_TYPE ON TT_CODE = TH_TYPE
+WHERE STH_STAFF_ID IN (
 SELECT STH1.STH_STAFF_ID
 FROM TRAINING_HEAD TH1,STAFF_TRAINING_HEAD STH1
 WHERE TH1.TH_STATUS = 'APPROVE'
@@ -41,11 +48,11 @@ AND STH1.STH_STATUS = 'APPROVE'
 AND STH1.STH_TRAINING_REFID = TH1.TH_REF_ID
 AND TH1.TH_REF_ID IS NOT NULL  
 AND TH1.TH_DATE_FROM IS NOT NULL
-AND ($P{P_TH_DATE_FROM} IS NULL OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH1.TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH1.TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH1.TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
+AND (($P{P_TH_DATE_FROM} IS NULL OR $P{P_TH_DATE_FROM} = '') OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH1.TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH1.TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH1.TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
 GROUP BY STH1.STH_STAFF_ID
 HAVING COUNT(TH1.TH_REF_ID) >1
 )
-AND ($P{P_TH_DATE_FROM} IS NULL OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
+AND (($P{P_TH_DATE_FROM} IS NULL OR $P{P_TH_DATE_FROM} = '') OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
 ORDER BY TH_REF_ID,STH_STAFF_ID]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
@@ -53,6 +60,7 @@ ORDER BY TH_REF_ID,STH_STAFF_ID]]>
 	</field>
 	<field name="TH_REF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TH_TRAINING_TITLE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
@@ -65,24 +73,30 @@ ORDER BY TH_REF_ID,STH_STAFF_ID]]>
 	</field>
 	<field name="STH_STAFF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="STH_STAFF_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_training_head"/>
 	</field>
 	<field name="SM_STAFF_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
 	</field>
 	<field name="SM_DEPT_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="SS_SERVICE_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 	</field>
 	<field name="SS_SALARY_GRADE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SS_SALARY_GRADE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 	</field>
 	<field name="DM_DEPT_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 	</field>
 	<field name="STH_STATUS" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="STH_STATUS"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_training_head"/>
 	</field>
 	<group name="Group1" isStartNewPage="true">
 		<groupExpression><![CDATA[$F{TH_REF_ID}]]></groupExpression>
