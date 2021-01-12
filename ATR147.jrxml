@@ -18,7 +18,7 @@
 	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR147"/>
 	<parameter name="P_TH_DATE_FROM" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH12:MI AM') "CURR_DATE",
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MM-YYYY HH12:MI AM') "CURR_DATE",
 TH_REF_ID AS "TH_REF_ID",
 UPPER(TH_TRAINING_TITLE) "TH_TRAINING_TITLE",
 TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') "TH_DATE_FROM", 

@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR088" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="b15dee52-2174-445c-930c-1b705eaed25c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR088_files/main_jrxml"/>
@@ -89,19 +89,19 @@
 		</box>
 	</style>
 	<subDataset name="MAIN_LIST" uuid="f0f95f74-cd71-4024-867e-9f9ccb449340">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFFID1" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT SM_STAFF_NAME,
-SM_STAFF_ID,
-SM_DEPT_DESC,
-SS_SERVICE_DESC,
-SS_JOIN_DATE,
-SS_JOB_START_DATE,
-BH_DATE,
-TH_DATE2,
-TH_DATE3
+			<![CDATA[SELECT SM_STAFF_NAME "SM_STAFF_NAME",
+SM_STAFF_ID "SM_STAFF_ID",
+SM_DEPT_DESC "SM_DEPT_DESC",
+SS_SERVICE_DESC "SS_SERVICE_DESC",
+SS_JOIN_DATE "SS_JOIN_DATE",
+SS_JOB_START_DATE "SS_JOB_START_DATE",
+BH_DATE "BH_DATE",
+TH_DATE2 "TH_DATE2",
+TH_DATE3 "TH_DATE3"
 FROM
 (
     SELECT DISTINCT SM_STAFF_ID,TM_TITLE_DESC||' '||SM_STAFF_NAME SM_STAFF_NAME,SM_DEPT_CODE,
@@ -114,11 +114,11 @@ FROM
     AND SM_JOB_CODE = SS_SERVICE_CODE
     AND SS_STAFF_ID = SM_STAFF_ID
     AND SS_STATUS_STS = 'ACTIVE'
-    AND NVL(SS_CONFIRM_STATUS,'07') <> '01'
+    AND COALESCE(SS_CONFIRM_STATUS,'07') <> '01'
     AND SS_JOB_STATUS = '01'
     AND SS_ACADEMIC = 'N'
     AND STE_STAFF_ID = SM_STAFF_ID
-    AND ($P{STAFFID1} IS NULL OR SM_STAFF_ID = $P{STAFFID1})
+    AND (($P{STAFFID1} IS NULL OR $P{STAFFID1} = '') OR SM_STAFF_ID = $P{STAFFID1})
     AND SM_STAFF_ID IN (SELECT SM_STAFF_ID
     FROM STAFF_MAIN
     WHERE NOT EXISTS (SELECT STE_STAFF_ID 
@@ -126,10 +126,11 @@ FROM
     WHERE STAFF_MAIN.SM_STAFF_ID = STAFF_TRAINING_EXAM.STE_STAFF_ID
     AND (STE_STATUS = 'LULUS' OR STE_STATUS = 'PENGECUALIAN')))
     ORDER BY SM_STAFF_ID 
-)
+) AS A
 LEFT JOIN
 (
-    SELECT SB_STAFF_ID, LISTAGG(BH_DATE,  chr(10)||chr(10)) WITHIN GROUP (ORDER BY BH_DATE_FROM DESC) AS BH_DATE
+    SELECT SB_STAFF_ID, 
+    STRING_AGG(BH_DATE,  chr(10)||chr(10) ORDER BY BH_DATE_FROM DESC) AS BH_DATE
     FROM 
     (
         SELECT DISTINCT SB_STAFF_ID,BH_REF_ID,BH_DATE,BH_DATE_FROM
@@ -171,12 +172,15 @@ LEFT JOIN
             AND (UPPER(TH_TRAINING_TITLE) LIKE UPPER('%BITARA LIVING%')
             OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('BITARA')
             OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('%BITARA EKSEKUTIF%'))
-        )
-    ) GROUP BY SB_STAFF_ID
-) ON SB_STAFF_ID = SM_STAFF_ID
+        ) AS B
+    ) AS C
+    GROUP BY SB_STAFF_ID
+) AS D
+ON SB_STAFF_ID = SM_STAFF_ID
 LEFT JOIN
 (
-    SELECT STH_STAFF_ID2, LISTAGG(TH_DATE2,  chr(10)||chr(10)) WITHIN GROUP (ORDER BY TH_DATE_FROM) AS TH_DATE2
+    SELECT STH_STAFF_ID2, 
+    STRING_AGG(TH_DATE2,  chr(10)||chr(10) ORDER BY TH_DATE_FROM) AS TH_DATE2
     FROM 
     (   
         SELECT DISTINCT STH_STAFF_ID STH_STAFF_ID2,TH_REF_ID,TH_TRAINING_TITLE,TH_DATE TH_DATE2,TH_DATE_FROM
@@ -204,14 +208,15 @@ LEFT JOIN
             AND STH_STAFF_ID = STD_STAFF_ID
             AND STD_ATTEND IN ('Y','A')
             AND UPPER(TH_TRAINING_TITLE) LIKE UPPER('%INDUKSI%KHUSUS%')
-        )
-    )
+        ) AS E
+    ) AS F
     GROUP BY STH_STAFF_ID2
-) ON STH_STAFF_ID2 = SM_STAFF_ID
+) AS G
+ON STH_STAFF_ID2 = SM_STAFF_ID
 LEFT JOIN
 (
     SELECT STH_STAFF_ID3,
-    LISTAGG(TH_DATE3, CHR(10)||CHR(10)) WITHIN GROUP (ORDER BY TH_DATE_FROM) AS TH_DATE3
+    STRING_AGG(TH_DATE3, CHR(10)||CHR(10) ORDER BY TH_DATE_FROM) AS TH_DATE3
     FROM
     (
         SELECT STH_STAFF_ID STH_STAFF_ID3,TH_REF_ID,TH_DATE,MPE,TH_DATE_FROM,TH_DATE||CHR(10)||MPE TH_DATE3
@@ -252,7 +257,7 @@ LEFT JOIN
             AND STD_ATTEND IN ('Y','A')
             AND (UPPER(TH_TRAINING_TITLE) LIKE UPPER('%LET%SPEAK%ENGLISH%')
             OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('%ENGLISH%FOR%WORK%'))
-        ) 
+        ) AS H
         LEFT JOIN
         (
             SELECT TO_CHAR(STE_MPE_DATE,'dd/mm/yyyy')||CHR(10)||'( '||STE_STATUS||' )'MPE,
@@ -261,10 +266,12 @@ LEFT JOIN
 			FROM STAFF_TRAINING_HEAD,STAFF_TRAINING_EXAM
             WHERE STH_STAFF_ID = STE_STAFF_ID
             AND STH_TRAINING_REFID = STE_REF_ID
-        ) ON STH_TRAINING_REFID = TH_REF_ID AND STH_STAFF_ID4 = STH_STAFF_ID
-    )
+        ) AS I
+        ON STH_TRAINING_REFID = TH_REF_ID AND STH_STAFF_ID4 = STH_STAFF_ID
+    ) AS J
     GROUP BY STH_STAFF_ID3
-) ON STH_STAFF_ID3 = SM_STAFF_ID
+) AS K
+ON STH_STAFF_ID3 = SM_STAFF_ID
 ORDER BY SM_STAFF_ID]]>
 		</queryString>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
@@ -272,12 +279,14 @@ ORDER BY SM_STAFF_ID]]>
 		</field>
 		<field name="SM_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_DEPT_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_DESC"/>
 		</field>
 		<field name="SS_SERVICE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="SS_JOIN_DATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_JOIN_DATE"/>
@@ -296,11 +305,11 @@ ORDER BY SM_STAFF_ID]]>
 		</field>
 	</subDataset>
 	<subDataset name="DT1" uuid="f86e4e7d-b79e-456a-92a8-f1caa215582e">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFFID1" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT STH_STAFF_ID,TH_DATE,MPE,TH_DATE_FROM
+			<![CDATA[SELECT STH_STAFF_ID "STH_STAFF_ID",TH_DATE "TH_DATE",MPE "MPE",TH_DATE_FROM "TH_DATE_FROM"
 FROM
 (
     SELECT STH_STAFF_ID,TH_REF_ID,TH_TRAINING_TITLE||' ('||
@@ -345,7 +354,7 @@ FROM
     WHERE STAFF_TRAINING_HEAD.STH_STAFF_ID = STAFF_TRAINING_EXAM.STE_STAFF_ID
     AND (STE_STATUS = 'LULUS' OR STE_STATUS = 'PENGECUALIAN')))
     AND STH_STAFF_ID = $P{STAFFID1}
-)
+) AS A
 ORDER BY TH_DATE_FROM]]>
 		</queryString>
 		<field name="STH_STAFF_ID" class="java.lang.String">
@@ -362,11 +371,11 @@ ORDER BY TH_DATE_FROM]]>
 		</field>
 	</subDataset>
 	<subDataset name="DT2" uuid="fd1ee9be-03e0-4bbb-ad6f-5b3d8a449028">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFFID1" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT LISTAGG(SPE_STAFF_ID, chr(10)) WITHIN GROUP (ORDER BY SPE_STAFF_ID) AS SPE_STAFF_ID
+			<![CDATA[SELECT STRING_AGG(SPE_STAFF_ID, chr(10) ORDER BY SPE_STAFF_ID) AS "SPE_STAFF_ID"
 FROM
 (
 	SELECT DISTINCT SPE_STAFF_ID
@@ -374,11 +383,11 @@ FROM
 	WHERE PEM_EXAM_REFID = SPE_EXAM_REFID
 	AND SPE_STATUS = 'APPROVE'
 	AND SPE_SEQUENCE IS NOT NULL
-	AND NVL(SPE_RELEASE,'N') = 'Y'
-	AND NVL(SPE_GRADE,NULL) = 'PASS'
-	AND PPA.GET_PREV_EXAM_PASS ($P{STAFFID1},PEM_GROUP_REFID) = 'PASS'
+	AND COALESCE(SPE_RELEASE,'N') = 'Y'
+	AND COALESCE(SPE_GRADE,NULL) = 'PASS'
+	AND PPA_GET_PREV_EXAM_PASS ($P{STAFFID1},PEM_GROUP_REFID) = 'PASS'
 	ORDER BY SPE_STAFF_ID
-)]]>
+) AS A]]>
 		</queryString>
 		<field name="SPE_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SPE_STAFF_ID"/>
@@ -386,8 +395,11 @@ FROM
 	</subDataset>
 	<parameter name="STAFFID1" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT * FROM DUAL]]>
+		<![CDATA[SELECT '' "DUMMY"]]>
 	</queryString>
+	<field name="DUMMY" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="DUMMY"/>
+	</field>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -395,7 +407,7 @@ FROM
 		<band height="98" splitType="Stretch">
 			<image>
 				<reportElement x="10" y="0" width="160" height="70" uuid="bd7bec97-e5b8-436a-a622-b53bd4928a6c"/>
-				<imageExpression><![CDATA["/TrainingAppl/images/logo_upsi.png"]]></imageExpression>
+				<imageExpression><![CDATA["D:\\UPSIDev\\JaspersoftWorkspace_6_10\\MyHRIS\\TrainingAppl\\images\\logo_upsi.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="0" y="80" width="280" height="18" uuid="7971e80a-3c7a-4bd1-80fb-6d0b3330f54f"/>

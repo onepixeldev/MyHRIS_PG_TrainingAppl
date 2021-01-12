@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR142" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="faa1eda8-ba73-4d8b-9d88-a12bbd3761d3">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -18,8 +18,11 @@
 	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR143"/>
 	<parameter name="DEPARTMENT" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MM-YYYY HH12:MI AM') CURR_DATE,
-SM_STAFF_ID,SM_STAFF_NAME,DM_DEPT_CODE,DM_DEPT_DESC
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MM-YYYY HH12:MI AM') "CURR_DATE",
+SM_STAFF_ID "SM_STAFF_ID",
+SM_STAFF_NAME "SM_STAFF_NAME",
+DM_DEPT_CODE "DM_DEPT_CODE",
+DM_DEPT_DESC "DM_DEPT_DESC"
 FROM STAFF_MAIN,STAFF_STATUS,DEPARTMENT_MAIN
 WHERE SM_STAFF_ID NOT IN 
 (
@@ -37,7 +40,7 @@ AND SB_STATUS='APPROVED'
 AND SB_ATTENDANCE='Y'
 AND SM_STAFF_ID = SB_STAFF_ID
 AND SM_DEPT_CODE = DM_DEPT_CODE  
-AND ($P{DEPARTMENT} IS NULL OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
+AND (($P{DEPARTMENT} IS NULL OR $P{DEPARTMENT} = '') OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
 UNION
 SELECT STH_STAFF_ID SB_STAFF_ID
 FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_TYPE,STAFF_MAIN,STAFF_STATUS,DEPARTMENT_MAIN
@@ -54,7 +57,7 @@ AND (UPPER(TT_DESC) = 'BITARA' OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('%BITARA%'
 AND UPPER(TH_CATEGORY) = 'PERKHIDMATAN'
 AND SM_STAFF_ID = STH_STAFF_ID
 AND SM_DEPT_CODE = DM_DEPT_CODE
-AND ($P{DEPARTMENT} IS NULL OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
+AND (($P{DEPARTMENT} IS NULL OR $P{DEPARTMENT} = '') OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
 UNION
 SELECT STH_STAFF_ID SB_STAFF_ID
 FROM TRAINING_HEAD,STAFF_TRAINING_HEAD,TRAINING_TYPE,STAFF_MAIN,STAFF_STATUS,DEPARTMENT_MAIN,STAFF_TRAINING_DETL
@@ -74,15 +77,15 @@ AND (UPPER(TT_DESC) = 'BITARA' OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('%BITARA%'
 AND UPPER(TH_CATEGORY) = 'PERKHIDMATAN'
 AND SM_STAFF_ID = STH_STAFF_ID
 AND SM_DEPT_CODE = DM_DEPT_CODE
-AND ($P{DEPARTMENT} IS NULL OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
-)
-)
+AND (($P{DEPARTMENT} IS NULL OR $P{DEPARTMENT} = '') OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
+) AS A
+) 
 AND SM_STAFF_TYPE = 'STAFF'
 AND SM_STAFF_STATUS = SS_STATUS_CODE
 AND SM_STAFF_STATUS = '01'
 AND SS_STATUS_STS = 'ACTIVE'
 AND SM_DEPT_CODE = DM_DEPT_CODE
-AND ($P{DEPARTMENT} IS NULL OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
+AND (($P{DEPARTMENT} IS NULL OR $P{DEPARTMENT} = '') OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
 ORDER BY DM_DEPT_CODE]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
@@ -90,15 +93,19 @@ ORDER BY DM_DEPT_CODE]]>
 	</field>
 	<field name="SM_STAFF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="SM_STAFF_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="DM_DEPT_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_CODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 	</field>
 	<field name="DM_DEPT_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 	</field>
 	<group name="Group1" isReprintHeaderOnEachPage="true" minDetailsToStartFromTop="1">
 		<groupExpression><![CDATA[$F{DM_DEPT_CODE}]]></groupExpression>

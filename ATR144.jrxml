@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR141" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="10" bottomMargin="20" uuid="3b5bccf6-81a1-4540-af10-48cfd1989f40">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -71,30 +71,30 @@
 		</box>
 	</style>
 	<subDataset name="BITARA_LIST" uuid="b1f3f884-5c13-4d12-9830-b7c72b7dc901">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<queryString>
-			<![CDATA[SELECT DEPARTMENT,
-DM_DEPT_CODE1,
-COALESCE(BIL_STAFF, 0) BIL_STAFF,
-COALESCE(BIL_HADIR_ORENTASI, 0) BIL_HADIR_ORENTASI,
+			<![CDATA[SELECT DEPARTMENT "DEPARTMENT",
+DM_DEPT_CODE1 "DM_DEPT_CODE1",
+COALESCE(BIL_STAFF::NUMERIC, 0) "BIL_STAFF",
+COALESCE(BIL_HADIR_ORENTASI::NUMERIC, 0) "BIL_HADIR_ORENTASI",
 CASE 
-WHEN COALESCE(BIL_STAFF, 0) = 0 THEN 0
-ELSE ROUND((COALESCE(BIL_HADIR_ORENTASI, 0)/COALESCE(BIL_STAFF, 0))*100,0)
-END PERATUS_HADIR_ORENTASI,
-(COALESCE(BIL_STAFF, 0) - COALESCE(BIL_HADIR_ORENTASI, 0)) BIL_TIDAK_HADIR_ORENTASI,
+WHEN COALESCE(BIL_STAFF::NUMERIC, 0) = 0 THEN 0
+ELSE ROUND((COALESCE(BIL_HADIR_ORENTASI::NUMERIC, 0)/COALESCE(BIL_STAFF::NUMERIC, 0))*100,0)
+END "PERATUS_HADIR_ORENTASI",
+(COALESCE(BIL_STAFF::NUMERIC, 0) - COALESCE(BIL_HADIR_ORENTASI::NUMERIC, 0)) "BIL_TIDAK_HADIR_ORENTASI",
 CASE 
-WHEN COALESCE(BIL_STAFF, 0) = 0 THEN 0
-ELSE ROUND(((COALESCE(BIL_STAFF, 0) - COALESCE(BIL_HADIR_ORENTASI, 0))/COALESCE(BIL_STAFF, 0))*100,0)
-END PERATUS_TIDAK_HADIR_ORENTASI
+WHEN COALESCE(BIL_STAFF::NUMERIC, 0) = 0 THEN 0
+ELSE ROUND(((COALESCE(BIL_STAFF::NUMERIC, 0) - COALESCE(BIL_HADIR_ORENTASI::NUMERIC, 0))/COALESCE(BIL_STAFF::NUMERIC, 0))*100,0)
+END "PERATUS_TIDAK_HADIR_ORENTASI"
 FROM
 (
     SELECT (DM_DEPT_DESC||CHR(10)||'( '||DM_DEPT_CODE||' ) ')DEPARTMENT,DM_DEPT_CODE DM_DEPT_CODE1
     FROM DEPARTMENT_MAIN
-    WHERE NVL(DM_STATUS,'INACTIVE')='ACTIVE'
+    WHERE COALESCE(DM_STATUS,'INACTIVE')='ACTIVE'
     AND DM_LEVEL <= 2
     ORDER BY DM_DEPT_DESC
-)
+) AS A
 LEFT JOIN
 (
     SELECT COUNT(1) BIL_STAFF, SM_DEPT_CODE
@@ -105,7 +105,8 @@ LEFT JOIN
     AND SM_STAFF_TYPE = 'STAFF'
     AND SM_STAFF_STATUS = '01'
     GROUP BY SM_DEPT_CODE
-) ON SM_DEPT_CODE = DM_DEPT_CODE1
+) AS B
+ON SM_DEPT_CODE = DM_DEPT_CODE1
 LEFT JOIN 
 (
     SELECT COUNT(1) BIL_HADIR_ORENTASI, SM_DEPT_CODE SM_DEPT_CODE2
@@ -141,14 +142,16 @@ LEFT JOIN
         AND TH_TRAINING_TITLE LIKE ('%Orientasi%')
         AND SM_STAFF_ID = STH_STAFF_ID
         AND SM_DEPT_CODE = DM_DEPT_CODE
-    ) GROUP BY SM_DEPT_CODE
-) ON SM_DEPT_CODE2 = DM_DEPT_CODE1]]>
+    ) AS C
+    GROUP BY SM_DEPT_CODE
+) AS D ON SM_DEPT_CODE2 = DM_DEPT_CODE1]]>
 		</queryString>
 		<field name="DEPARTMENT" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DEPARTMENT"/>
 		</field>
 		<field name="DM_DEPT_CODE1" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_CODE1"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 		</field>
 		<field name="BIL_STAFF" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="BIL_STAFF"/>
@@ -167,15 +170,15 @@ LEFT JOIN
 		</field>
 	</subDataset>
 	<subDataset name="SUM_BITARA" uuid="35e14d9a-a77d-4b60-b03a-d4171bae793e">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<queryString>
 			<![CDATA[SELECT 
-SUM(BIL_STAFF) SUM_STAFF,
-SUM(BIL_HADIR_ORENTASI) SUM_HADIR,
-(ROUND((SUM(BIL_HADIR_ORENTASI)/SUM(BIL_STAFF))*100,0)) PERATUS_BESAR_HADIR,
-SUM(BIL_TIDAK_HADIR_ORENTASI) SUM_TIDAK_HADIR,
-(ROUND((SUM(BIL_TIDAK_HADIR_ORENTASI)/SUM(BIL_STAFF))*100,0)) PERATUS_BESAR_TIDAK_HADIR
+SUM(BIL_STAFF::NUMERIC) "SUM_STAFF",
+SUM(BIL_HADIR_ORENTASI::NUMERIC) "SUM_HADIR",
+(ROUND((SUM(BIL_HADIR_ORENTASI::NUMERIC)/SUM(BIL_STAFF::NUMERIC))*100,0)) "PERATUS_BESAR_HADIR",
+SUM(BIL_TIDAK_HADIR_ORENTASI::NUMERIC) "SUM_TIDAK_HADIR",
+(ROUND((SUM(BIL_TIDAK_HADIR_ORENTASI::NUMERIC)/SUM(BIL_STAFF::NUMERIC))*100,0)) "PERATUS_BESAR_TIDAK_HADIR"
 FROM
 (
     SELECT DEPARTMENT,
@@ -195,10 +198,10 @@ FROM
     (
         SELECT (DM_DEPT_DESC||CHR(10)||'( '||DM_DEPT_CODE||' ) ')DEPARTMENT,DM_DEPT_CODE DM_DEPT_CODE1
         FROM DEPARTMENT_MAIN
-        WHERE NVL(DM_STATUS,'INACTIVE')='ACTIVE'
+        WHERE COALESCE(DM_STATUS,'INACTIVE')='ACTIVE'
         AND DM_LEVEL <= 2
         ORDER BY DM_DEPT_DESC
-    )
+    ) AS A
     LEFT JOIN
     (
         SELECT COUNT(1) BIL_STAFF, SM_DEPT_CODE
@@ -209,7 +212,8 @@ FROM
         AND SM_STAFF_TYPE = 'STAFF'
         AND SM_STAFF_STATUS = '01'
         GROUP BY SM_DEPT_CODE
-    ) ON SM_DEPT_CODE = DM_DEPT_CODE1
+    ) AS B
+    ON SM_DEPT_CODE = DM_DEPT_CODE1
     LEFT JOIN 
     (
         SELECT COUNT(1) BIL_HADIR_ORENTASI, SM_DEPT_CODE SM_DEPT_CODE2
@@ -245,9 +249,11 @@ FROM
             AND TH_TRAINING_TITLE LIKE ('%Orientasi%')
             AND SM_STAFF_ID = STH_STAFF_ID
             AND SM_DEPT_CODE = DM_DEPT_CODE
-        ) GROUP BY SM_DEPT_CODE
-    ) ON SM_DEPT_CODE2 = DM_DEPT_CODE1
-)]]>
+        ) AS C
+        GROUP BY SM_DEPT_CODE
+    ) AS D 
+    ON SM_DEPT_CODE2 = DM_DEPT_CODE1
+) AS E ]]>
 		</queryString>
 		<field name="SUM_STAFF" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="SUM_STAFF"/>
@@ -266,7 +272,7 @@ FROM
 		</field>
 	</subDataset>
 	<queryString language="SQL">
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MM-YYYY HH12:MI AM') CURR_DATE FROM DUAL]]>
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MM-YYYY HH12:MI AM') "CURR_DATE" ]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>
