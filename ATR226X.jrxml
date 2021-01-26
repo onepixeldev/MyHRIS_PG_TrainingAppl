@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR226X" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="762" leftMargin="40" rightMargin="40" topMargin="20" bottomMargin="20" uuid="25569710-2bab-4992-91c1-132d1c17a2a0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -103,15 +103,19 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="92bdd1bd-ff26-46d0-b585-b8580f34d034">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT Q.*,
-COALESCE(ROUND((NULLIF(BIL_HADIR,0) / NULLIF(TOTAL_STAFF,0)) * 100,0), 0) PERATUS_HADIR,
-(TOTAL_STAFF - BIL_HADIR) BIL_TIDAK_HADIR,
-COALESCE(ROUND((NULLIF((TOTAL_STAFF - BIL_HADIR),0) / NULLIF(TOTAL_STAFF,0)) * 100,0),0) PERATUS_TIDAK_HADIR
+			<![CDATA[SELECT TEMPAT "TEMPAT",
+RM_RACE_CODE "RM_RACE_CODE",
+RM_RACE_DESC "RM_RACE_DESC", 
+TOTAL_STAFF::NUMERIC "TOTAL_STAFF", 
+BIL_HADIR::NUMERIC "BIL_HADIR", 
+COALESCE(ROUND((NULLIF(BIL_HADIR::NUMERIC,0) / NULLIF(TOTAL_STAFF::NUMERIC,0)) * 100,0), 0) "PERATUS_HADIR",
+(TOTAL_STAFF::NUMERIC - BIL_HADIR::NUMERIC) "BIL_TIDAK_HADIR",
+COALESCE(ROUND((NULLIF((TOTAL_STAFF::NUMERIC - BIL_HADIR::NUMERIC),0) / NULLIF(TOTAL_STAFF::NUMERIC,0)) * 100,0),0) "PERATUS_TIDAK_HADIR"
 FROM
 (
     SELECT 
@@ -174,7 +178,7 @@ FROM
         AND SM_STAFF_STATUS = '01'
         AND SM_STAFF_TYPE = 'STAFF'
         ORDER BY RM_RACE_CODE
-    )
+    ) A
 ) Q]]>
 		</queryString>
 		<field name="TEMPAT" class="java.lang.String">
@@ -182,9 +186,11 @@ FROM
 		</field>
 		<field name="RM_RACE_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="RM_RACE_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="race_main"/>
 		</field>
 		<field name="RM_RACE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="RM_RACE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="race_main"/>
 		</field>
 		<field name="TOTAL_STAFF" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="TOTAL_STAFF"/>
@@ -206,17 +212,17 @@ FROM
 		</variable>
 	</subDataset>
 	<subDataset name="BIG_TOTAL" uuid="79d12585-6f0e-43be-b20a-af4e772b6c02">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
-SUM(TOTAL_STAFF) JUM_STAFF,
-SUM(BIL_HADIR) JUM_HADIR,
-COALESCE(ROUND((NULLIF(SUM(BIL_HADIR),0) / NULLIF(SUM(TOTAL_STAFF),0)) * 100,0),0) JUM_PERATUS_HADIR,
-SUM(BIL_TIDAK_HADIR) JUM_TIDAK_HADIR,
-COALESCE(ROUND((NULLIF(SUM(BIL_TIDAK_HADIR),0) / NULLIF(SUM(TOTAL_STAFF),0)) * 100,0),0) JUM_PERATUS_TIDAK_HADIR
+SUM(TOTAL_STAFF::NUMERIC) "JUM_STAFF",
+SUM(BIL_HADIR::NUMERIC) "JUM_HADIR",
+COALESCE(ROUND((NULLIF(SUM(BIL_HADIR::NUMERIC),0) / NULLIF(SUM(TOTAL_STAFF::NUMERIC),0)) * 100,0),0) "JUM_PERATUS_HADIR",
+SUM(BIL_TIDAK_HADIR::NUMERIC) "JUM_TIDAK_HADIR",
+COALESCE(ROUND((NULLIF(SUM(BIL_TIDAK_HADIR::NUMERIC),0) / NULLIF(SUM(TOTAL_STAFF::NUMERIC),0)) * 100,0),0) "JUM_PERATUS_TIDAK_HADIR"
 FROM
 (
     SELECT Q.*,
@@ -273,7 +279,7 @@ FROM
             AND SM_STAFF_STATUS = '01'
             AND SM_STAFF_TYPE = 'STAFF'
             ORDER BY RM_RACE_CODE
-        )
+        ) A
     ) Q
 )W]]>
 		</queryString>
@@ -296,13 +302,28 @@ FROM
 	<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE,
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE",
 CASE 
-WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY') IS NULL
+WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM'), 'MM')  IS NULL
 THEN 'Semua'
-ELSE TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY')
-END MONTH
-FROM DUAL]]>
+ELSE 
+(
+CASE TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'), 'MM') 
+WHEN '01' THEN 'Januari'
+WHEN '02' THEN 'Februari'
+WHEN '03' THEN 'Mac'
+WHEN '04' THEN 'April'
+WHEN '05' THEN 'Mei'
+WHEN '06' THEN 'Jun'
+WHEN '07' THEN 'Julai'
+WHEN '08' THEN 'Ogos'
+WHEN '09' THEN 'September'
+WHEN '10' THEN 'Oktober'
+WHEN '11' THEN 'November'
+WHEN '12' THEN 'Disember'
+END 
+)
+END "MONTH"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

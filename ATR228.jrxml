@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR228" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="782" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="ff137a2f-bc96-42d1-94c6-812b649bdf73">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -44,7 +44,7 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="c0dc567e-4afd-4355-90d0-2c019e471feb">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="SUKU_BULAN1" class="java.lang.String"/>
 		<parameter name="SUKU_BULAN2" class="java.lang.String"/>
@@ -52,9 +52,9 @@
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<parameter name="SUKU_TAHUN" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT DM_DEPT_CODE,
+			<![CDATA[SELECT DM_DEPT_CODE "DM_DEPT_CODE",
 (
-    SELECT COUNT(1) 
+    SELECT COUNT(1)::NUMERIC 
     FROM STAFF_MAIN,STAFF_STATUS
     WHERE SM_STAFF_STATUS = SS_STATUS_CODE
     AND SS_STATUS_CODE = '01'
@@ -64,7 +64,7 @@
     (SELECT SS_STAFF_ID
     FROM STAFF_SERVICE
     WHERE TO_CHAR(SS_JOIN_DATE,'yyyy') <= $P{TRAINING_YEAR})
-) TOTAL_STAFF,
+) "TOTAL_STAFF",
 (
     SELECT 
     CASE 
@@ -77,8 +77,7 @@
     WHEN $P{SUKU_TAHUN} = '4'
     THEN 'Suku Tahun Keempat'
     END AS SUKU_TAHUN
-    FROM DUAL
-) SUKU_TAHUN,
+) "SUKU_TAHUN",
 (
     SELECT 
     CASE 
@@ -91,8 +90,7 @@
     WHEN $P{SUKU_TAHUN} = '4' AND $P{SUKU_BULAN1} = '10'
     THEN 'Okt'
     END AS SUKU_TAHUN_BULAN
-    FROM DUAL
-) SUKU_TAHUN_BULAN,
+) "SUKU_TAHUN_BULAN",
 (
     SELECT 
     CASE 
@@ -105,8 +103,7 @@
     WHEN $P{SUKU_TAHUN} = '4' AND $P{SUKU_BULAN2} = '11'
     THEN 'Nov'
     END AS SUKU_TAHUN_BULAN2
-    FROM DUAL
-) SUKU_TAHUN_BULAN2,
+) "SUKU_TAHUN_BULAN2",
 (
     SELECT 
     CASE 
@@ -119,10 +116,9 @@
     WHEN $P{SUKU_TAHUN} = '4' AND $P{SUKU_BULAN3} = '12'
     THEN 'Dis'
     END AS SUKU_TAHUN_BULAN3
-    FROM DUAL
-) SUKU_TAHUN_BULAN3,
+) "SUKU_TAHUN_BULAN3",
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -142,9 +138,9 @@
     AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
     AND TO_CHAR(TH_DATE_FROM,'mm') = $P{SUKU_BULAN1}
     AND SM_DEPT_CODE = DM.DM_DEPT_CODE
-) JAN_APR_JUL_OKT,
+) "JAN_APR_JUL_OKT",
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC  AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -164,9 +160,9 @@
     AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
     AND TO_CHAR(TH_DATE_FROM,'mm') = $P{SUKU_BULAN2}
     AND SM_DEPT_CODE = DM.DM_DEPT_CODE
-) FEB_MEI_OGOS_NOV,
+) "FEB_MEI_OGOS_NOV",
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC  AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -186,14 +182,15 @@
     AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{TRAINING_YEAR}
     AND TO_CHAR(TH_DATE_FROM,'mm') = $P{SUKU_BULAN3}
     AND SM_DEPT_CODE = DM.DM_DEPT_CODE
-) MAC_JUN_SEPT_DIS
+) "MAC_JUN_SEPT_DIS"
 FROM DEPARTMENT_MAIN DM
 WHERE DM_LEVEL IN (1,2)
-AND NVL(DM_STATUS,'INACTIVE') = 'ACTIVE'
+AND COALESCE(DM_STATUS,'INACTIVE') = 'ACTIVE'
 ORDER BY DM_DEPT_CODE]]>
 		</queryString>
 		<field name="DM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 		</field>
 		<field name="TOTAL_STAFF" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="TOTAL_STAFF"/>
@@ -226,8 +223,7 @@ ORDER BY DM_DEPT_CODE]]>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<parameter name="SUKU_TAHUN" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE
-FROM DUAL]]>
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

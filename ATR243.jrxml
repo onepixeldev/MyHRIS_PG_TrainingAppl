@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR243" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="822" leftMargin="10" rightMargin="10" topMargin="20" bottomMargin="10" uuid="a1c5f66a-461a-4c0a-89ef-be6b05248706">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
@@ -37,30 +37,31 @@
 		</box>
 	</style>
 	<subDataset name="STAFF_LIST" uuid="4a353e74-bb26-421b-88f5-23635040c3d9">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="AKA_NAKA" class="java.lang.String"/>
 		<parameter name="TH_REFID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT STH_TRAINING_REFID,
-STH_STAFF_ID,
+			<![CDATA[SELECT 
+STH_TRAINING_REFID "STH_TRAINING_REFID",
+STH_STAFF_ID "STH_STAFF_ID",
 CASE WHEN GET_STAFF_TITLE(STH_STAFF_ID) IS NULL
 THEN STAFF_NAME
 ELSE GET_STAFF_TITLE(STH_STAFF_ID)||' '||STAFF_NAME
-END AS CF_TITLE,
+END AS "CF_TITLE",
 (
     SELECT INITCAP(APM_DESC)||chr(10)||' ('||SM_ADMIN_DEPT||')' ADMIN_DEPT
     FROM STAFF_MAIN,ADMIN_POST_MAIN
     WHERE SM_ADMIN_JOBCODE = APM_CODE
     AND SM_STAFF_ID = Q.STH_STAFF_ID
-) CF_ADMIN_POST,
+) "CF_ADMIN_POST",
 (
     SELECT SOG_GROUP_DESC||CHR(10)||'('||COALESCE(SS_SERVICE_KUMPP,'Tiada Kumpulan Perkhidmatan')||')' KUMPULAN_PERKHIDMATAN
     FROM SERVICE_SCHEME,STAFF_MAIN,SERVICE_ORG_GROUP
     WHERE SM_JOB_CODE = SS_SERVICE_CODE
     AND SM_STAFF_ID = Q.STH_STAFF_ID
     AND SS_SERVICE_KUMPP = SOG_GROUP_CODE
-) CF_SERVICE_KUMP
+) "CF_SERVICE_KUMP"
 FROM
 (
     SELECT STH_TRAINING_REFID,STH_STAFF_ID,STAFF_NAME
@@ -73,7 +74,7 @@ FROM
         AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
         AND SM_STAFF_ID = STH_STAFF_ID
         AND SM_JOB_CODE = SS_SERVICE_CODE
-        AND ($P{AKA_NAKA} IS NULL OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
+        AND (($P{AKA_NAKA} IS NULL OR $P{AKA_NAKA}  = '') OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
         UNION
         SELECT STH_TRAINING_REFID,STH_STAFF_ID,SM_STAFF_NAME||CHR(10)||'('||STH_STAFF_ID||')' STAFF_NAME
         FROM STAFF_TRAINING_HEAD,STAFF_MAIN,SERVICE_SCHEME,STAFF_TRAINING_DETL,TRAINING_HEAD
@@ -85,8 +86,8 @@ FROM
         AND STD_ATTEND IN ('Y','A')
         AND SM_STAFF_ID = STH_STAFF_ID
         AND SM_JOB_CODE = SS_SERVICE_CODE
-        AND ($P{AKA_NAKA} IS NULL OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
-    )
+        AND (($P{AKA_NAKA} IS NULL OR $P{AKA_NAKA} = '') OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
+    ) A
 ) Q
 WHERE STH_TRAINING_REFID = $P{TH_REFID}
 ORDER BY STH_STAFF_ID]]>
@@ -111,14 +112,15 @@ ORDER BY STH_STAFF_ID]]>
 		</variable>
 	</subDataset>
 	<subDataset name="TOTAL_STAFF_ALL" uuid="12eb94b5-152f-4eea-91eb-61188de83784">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="AKEPT_MONTH" class="java.lang.String"/>
 		<parameter name="AKA_NAKA" class="java.lang.String"/>
 		<parameter name="AKEPT_ORGANIZER" class="java.lang.String"/>
 		<parameter name="AKEPT_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT COUNT(STH_STAFF_ID) TOTAL_STAFF_ALL
+			<![CDATA[SELECT 
+COUNT(STH_STAFF_ID)::NUMERIC "TOTAL_STAFF_ALL"
 FROM
 (
     SELECT
@@ -128,11 +130,11 @@ FROM
 	AND TH_STATUS = 'APPROVE'
 	AND TRAINING_HEAD.TH_TRAINING_STATE = STATE_MAIN.SM_STATE_CODE
 	AND TRAINING_HEAD.TH_TRAINING_COUNTRY = COUNTRY_MAIN.CM_COUNTRY_CODE
-	AND ($P{AKEPT_MONTH} IS NULL OR ($P{AKEPT_MONTH} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'mm') = $P{AKEPT_MONTH}))
-	AND ($P{AKEPT_YEAR} IS NULL OR ($P{AKEPT_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{AKEPT_YEAR}))
-	AND ($P{AKEPT_ORGANIZER} IS NULL OR ($P{AKEPT_ORGANIZER} IS NOT NULL AND TH_ORGANIZER_NAME = $P{AKEPT_ORGANIZER}))
+	AND (($P{AKEPT_MONTH} IS NULL OR $P{AKEPT_MONTH} = '') OR ($P{AKEPT_MONTH} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'mm') = $P{AKEPT_MONTH}))
+	AND (($P{AKEPT_YEAR} IS NULL OR $P{AKEPT_YEAR} = '') OR ($P{AKEPT_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{AKEPT_YEAR}))
+	AND (($P{AKEPT_ORGANIZER} IS NULL OR $P{AKEPT_ORGANIZER} = '') OR ($P{AKEPT_ORGANIZER} IS NOT NULL AND TH_ORGANIZER_NAME = $P{AKEPT_ORGANIZER}))
 	ORDER BY TH_DATE_FROM DESC
-)
+) A
 LEFT JOIN
 (
     SELECT STH_STAFF_ID, STH_TRAINING_REFID
@@ -145,7 +147,7 @@ LEFT JOIN
         AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
         AND SM_STAFF_ID = STH_STAFF_ID
         AND SM_JOB_CODE = SS_SERVICE_CODE
-        AND ($P{AKA_NAKA} IS NULL OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
+        AND (($P{AKA_NAKA} IS NULL OR $P{AKA_NAKA} = '') OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
         UNION
         SELECT STH_TRAINING_REFID,STH_STAFF_ID,SM_STAFF_NAME||CHR(10)||'('||STH_STAFF_ID||')' STAFF_NAME
         FROM STAFF_TRAINING_HEAD,STAFF_MAIN,SERVICE_SCHEME,STAFF_TRAINING_DETL,TRAINING_HEAD
@@ -157,9 +159,10 @@ LEFT JOIN
         AND STD_ATTEND IN ('Y','A')
         AND SM_STAFF_ID = STH_STAFF_ID
         AND SM_JOB_CODE = SS_SERVICE_CODE
-        AND ($P{AKA_NAKA} IS NULL OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
-    )
-) ON STH_TRAINING_REFID = TH_REF_ID
+        AND (($P{AKA_NAKA} IS NULL OR $P{AKA_NAKA} = '') OR ($P{AKA_NAKA} IS NOT NULL AND COALESCE(SS_ACADEMIC,'N') = $P{AKA_NAKA}))
+    ) B
+) C
+ON STH_TRAINING_REFID = TH_REF_ID
 WHERE STH_STAFF_ID IS NOT NULL]]>
 		</queryString>
 		<field name="TOTAL_STAFF_ALL" class="java.math.BigDecimal">
@@ -171,11 +174,11 @@ WHERE STH_STAFF_ID IS NOT NULL]]>
 	<parameter name="AKEPT_ORGANIZER" class="java.lang.String"/>
 	<parameter name="AKEPT_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TH_REF_ID,
-TH_TRAINING_TITLE,
-TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy')DATE2,
-TH_DATE_FROM,
-TH_TRAINING_VENUE||','||SM_STATE_DESC||','||CM_COUNTRY_DESC ADDRESS,
+		<![CDATA[SELECT TH_REF_ID "TH_REF_ID",
+TH_TRAINING_TITLE "TH_TRAINING_TITLE",
+TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') "DATE2",
+TH_DATE_FROM "TH_DATE_FROM",
+TH_TRAINING_VENUE||','||SM_STATE_DESC||','||CM_COUNTRY_DESC "ADDRESS",
 (SELECT
 CASE 
 WHEN $P{AKEPT_YEAR} IS NOT NULL
@@ -194,30 +197,33 @@ FROM
     ELSE 
     'AKADEMIK DAN BUKAN AKADEMIK'
     END AS V_STAFF
-    FROM DUAL
-)) V_TITLE,
-TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE
+) A
+) "V_TITLE",
+TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE"
 FROM TRAINING_HEAD,STATE_MAIN,COUNTRY_MAIN
 WHERE TH_CATEGORY = 'AKEPT'
 AND TH_STATUS = 'APPROVE'
 AND TRAINING_HEAD.TH_TRAINING_STATE = STATE_MAIN.SM_STATE_CODE
 AND TRAINING_HEAD.TH_TRAINING_COUNTRY = COUNTRY_MAIN.CM_COUNTRY_CODE
-AND ($P{AKEPT_MONTH} IS NULL OR ($P{AKEPT_MONTH} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'mm') = $P{AKEPT_MONTH}))
-AND ($P{AKEPT_YEAR} IS NULL OR ($P{AKEPT_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{AKEPT_YEAR}))
-AND ($P{AKEPT_ORGANIZER} IS NULL OR ($P{AKEPT_ORGANIZER} IS NOT NULL AND TH_ORGANIZER_NAME = $P{AKEPT_ORGANIZER}))
+AND (($P{AKEPT_MONTH} IS NULL OR $P{AKEPT_MONTH} = '') OR ($P{AKEPT_MONTH} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'mm') = $P{AKEPT_MONTH}))
+AND (($P{AKEPT_YEAR} IS NULL OR $P{AKEPT_YEAR} = '') OR ($P{AKEPT_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{AKEPT_YEAR}))
+AND (($P{AKEPT_ORGANIZER} IS NULL OR $P{AKEPT_ORGANIZER} = '') OR ($P{AKEPT_ORGANIZER} IS NOT NULL AND TH_ORGANIZER_NAME = $P{AKEPT_ORGANIZER}))
 ORDER BY TH_DATE_FROM DESC]]>
 	</queryString>
 	<field name="TH_REF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TH_TRAINING_TITLE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="DATE2" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DATE2"/>
 	</field>
 	<field name="TH_DATE_FROM" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="TH_DATE_FROM"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="ADDRESS" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="ADDRESS"/>

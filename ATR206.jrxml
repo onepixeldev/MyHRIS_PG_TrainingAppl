@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR206" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="10" bottomMargin="10" uuid="80178e8c-a18c-4341-b808-6ade0466d67d">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
@@ -62,15 +62,18 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="560d5d66-6dc7-4061-9579-cd09055c2002">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT TH_REF_ID,TRAINING_TITLE,TH_CATEGORY,
-    COALESCE(PP, 0) PP,
-    COALESCE(SOKONGAN, 0) SOKONGAN,
-    COALESCE(HADIR_PP, 0) HADIR_PP,
-    COALESCE(HADIR_SOKONGAN, 0) HADIR_SOKONGAN
+			<![CDATA[SELECT 
+    TH_REF_ID "TH_REF_ID",
+    TRAINING_TITLE "TRAINING_TITLE",
+    TH_CATEGORY "TH_CATEGORY",
+    COALESCE(PP::NUMERIC, 0) "PP",
+    COALESCE(SOKONGAN::NUMERIC, 0) "SOKONGAN",
+    COALESCE(HADIR_PP::NUMERIC, 0) "HADIR_PP",
+    COALESCE(HADIR_SOKONGAN::NUMERIC, 0) "HADIR_SOKONGAN"
     FROM
     (
         SELECT TH_REF_ID,INITCAP(TH_TRAINING_TITLE) TRAINING_TITLE,TH_CATEGORY,
@@ -95,7 +98,7 @@
         AND TH_TRAINING_TITLE IS NOT NULL
         AND TH_DATE_FROM IS NOT NULL
         --ORDER BY TH_TRAINING_TITLE
-    ) 
+    ) AS A
     LEFT JOIN
     (
         SELECT COUNT(STH_STAFF_ID) HADIR_PP, STH_TRAINING_REFID 
@@ -141,9 +144,10 @@
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016'
             --AND STH_TRAINING_REFID = :TH_REF_ID
-        )
+        ) AS B
         GROUP BY STH_TRAINING_REFID
-    ) ON STH_TRAINING_REFID = TH_REF_ID
+    ) AS C
+    ON STH_TRAINING_REFID = TH_REF_ID
     LEFT JOIN
     (
         SELECT COUNT(STH_STAFF_ID) HADIR_SOKONGAN, STH_TRAINING_REFID STR  
@@ -189,19 +193,22 @@
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016'
             --AND STH_TRAINING_REFID = :TH_REF_ID
-        )
+        ) AS D
         GROUP BY STH_TRAINING_REFID
-    ) ON STR = TH_REF_ID
+    ) AS E
+    ON STR = TH_REF_ID
 ORDER BY TRAINING_TITLE]]>
 		</queryString>
 		<field name="TH_REF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="TRAINING_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TRAINING_TITLE"/>
 		</field>
 		<field name="TH_CATEGORY" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_CATEGORY"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="PP" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="PP"/>
@@ -217,15 +224,15 @@ ORDER BY TRAINING_TITLE]]>
 		</field>
 	</subDataset>
 	<subDataset name="BIG_TOTAL" uuid="b204fbb0-a254-462c-8491-55cf2ee89cb4">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
-SUM(PP) TOTAL_PP,
-SUM(SOKONGAN) TOTAL_SOKONGAN,
-SUM(HADIR_PP) TOTAL_HADIR_PP,
-SUM(HADIR_SOKONGAN) TOTAL_HADIR_SOKONGAN    
+SUM(PP::NUMERIC) "TOTAL_PP",
+SUM(SOKONGAN::NUMERIC) "TOTAL_SOKONGAN",
+SUM(HADIR_PP::NUMERIC) "TOTAL_HADIR_PP",
+SUM(HADIR_SOKONGAN::NUMERIC) "TOTAL_HADIR_SOKONGAN"    
 FROM
 (
     SELECT TH_REF_ID,TRAINING_TITLE,TH_CATEGORY,
@@ -257,7 +264,7 @@ FROM
         AND TH_TRAINING_TITLE IS NOT NULL
         AND TH_DATE_FROM IS NOT NULL
         --ORDER BY TH_TRAINING_TITLE
-    ) 
+    ) AS A
     LEFT JOIN
     (
         SELECT COUNT(STH_STAFF_ID) HADIR_PP, STH_TRAINING_REFID 
@@ -303,9 +310,10 @@ FROM
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016'
             --AND STH_TRAINING_REFID = :TH_REF_ID
-        )
+        ) AS B
         GROUP BY STH_TRAINING_REFID
-    ) ON STH_TRAINING_REFID = TH_REF_ID
+    ) AS C
+    ON STH_TRAINING_REFID = TH_REF_ID
     LEFT JOIN
     (
         SELECT COUNT(STH_STAFF_ID) HADIR_SOKONGAN, STH_TRAINING_REFID STR  
@@ -351,10 +359,11 @@ FROM
             AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
             AND TO_CHAR(TH_DATE_FROM,'yyyy') >= '2016'
             --AND STH_TRAINING_REFID = :TH_REF_ID
-        )
+        ) AS D
         GROUP BY STH_TRAINING_REFID
-    ) ON STR = TH_REF_ID
-)]]>
+    ) AS E
+    ON STR = TH_REF_ID
+) AS F]]>
 		</queryString>
 		<field name="TOTAL_PP" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="TOTAL_PP"/>
@@ -371,7 +380,7 @@ FROM
 	</subDataset>
 	<parameter name="P_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT * FROM DUAL]]>
+		<![CDATA[SELECT '' "DUMMY"]]>
 	</queryString>
 	<field name="DUMMY" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DUMMY"/>

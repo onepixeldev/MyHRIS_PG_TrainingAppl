@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR290" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="822" leftMargin="10" rightMargin="10" topMargin="20" bottomMargin="20" uuid="921e3cc6-117f-48eb-b578-393f871205e1">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="READ_ONLY_MYHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -44,18 +44,22 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="5d7963d1-e270-4f5b-8e38-e4cbe4537057">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="READ_ONLY_MYHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="DEPT" class="java.lang.String"/>
 		<parameter name="STRUCTUREDID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT SM_STAFF_ID, SM_STAFF_NAME, SM_DEPT_CODE,SS_SERVICE_DESC,
-TO_CHAR(SS_JOIN_DATE,'DD/MM/YYYY')  AS SS_JOIN_DATE,
+			<![CDATA[SELECT 
+SM_STAFF_ID "SM_STAFF_ID", 
+SM_STAFF_NAME "SM_STAFF_NAME", 
+SM_DEPT_CODE "SM_DEPT_CODE",
+SS_SERVICE_DESC "SS_SERVICE_DESC",
+TO_CHAR(SS_JOIN_DATE,'DD/MM/YYYY') "SS_JOIN_DATE",
 (
 	SELECT UPPER(TTH_TRAINING_TITLE) AS TITLE
 	FROM TNA_TRAINING_HEAD
 	WHERE TTH_REF_ID = $P{STRUCTUREDID}
-) AS TRAINING_TITLE
+) "TRAINING_TITLE"
 FROM STAFF_MAIN,STAFF_STATUS,SERVICE_SCHEME,STAFF_SERVICE
 WHERE SM_DEPT_CODE = $P{DEPT}
 AND SM_STAFF_STATUS = SS_STATUS_CODE
@@ -81,21 +85,25 @@ AND COALESCE(STD_ATTEND,'N') IN ('Y','A')
 AND TH_TRAINING_CODE = TTH_REF_ID
 AND COALESCE(TTH_STRUCTURED,'N') = 'Y'
 AND TH_TRAINING_CODE =$P{STRUCTUREDID}
-AND TH_DATE_FROM <= SYSDATE
+AND TH_DATE_FROM <= CURRENT_DATE
 )
 ORDER BY SM_DEPT_CODE,SM_STAFF_ID]]>
 		</queryString>
 		<field name="SM_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SS_SERVICE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="SS_JOIN_DATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_JOIN_DATE"/>
@@ -107,14 +115,18 @@ ORDER BY SM_DEPT_CODE,SM_STAFF_ID]]>
 	<parameter name="DEPT" class="java.lang.String"/>
 	<parameter name="STRUCTUREDID" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT DM_DEPT_CODE||' - '||DM_DEPT_DESC DEPT_DESC,
+		<![CDATA[SELECT
+(
+	SELECT DM_DEPT_CODE||' - '||DM_DEPT_DESC DEPT_DESC
+	FROM DEPARTMENT_MAIN
+	WHERE DM_DEPT_CODE =  $P{DEPT}
+) "DEPT_DESC",
 (
 	SELECT TTH_REF_ID||' - '||TTH_TRAINING_TITLE AS TITLE
 	FROM TNA_TRAINING_HEAD
 	WHERE TTH_REF_ID = $P{STRUCTUREDID}
-) TITLE
-FROM DEPARTMENT_MAIN
-WHERE DM_DEPT_CODE =  $P{DEPT}]]>
+) "TITLE"
+]]>
 	</queryString>
 	<field name="DEPT_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DEPT_DESC"/>

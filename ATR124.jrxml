@@ -387,7 +387,7 @@ FROM
 		<band height="98" splitType="Stretch">
 			<image>
 				<reportElement x="10" y="0" width="160" height="70" uuid="bd7bec97-e5b8-436a-a622-b53bd4928a6c"/>
-				<imageExpression><![CDATA["D:\\UPSIDev\\JaspersoftWorkspace_6_10\\MyHRIS\\TrainingAppl\\images\\logo_upsi.png"]]></imageExpression>
+				<imageExpression><![CDATA["repo:/Reports/Images/Logo_UPSI_2018_Confirm_With_Stroke.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="0" y="80" width="280" height="18" uuid="7971e80a-3c7a-4bd1-80fb-6d0b3330f54f"/>

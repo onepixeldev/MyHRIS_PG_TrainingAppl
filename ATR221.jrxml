@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR221" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="822" leftMargin="10" rightMargin="10" topMargin="20" bottomMargin="20" uuid="ef41bfe7-d4b7-44c6-8cf8-46f274be5e5e">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -44,56 +44,56 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="8948a91c-d0c2-4bc1-81c6-6ebc592f3aad">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS.xml"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_MONTH2" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT Q.*,
-staff.get_Age(sysdate,UMUR) AGE
+staff_get_Age(current_date,"UMUR") "AGE"
 FROM
 (
-    SELECT TH_REF_ID,
-    TH_TRAINING_TITLE,
-    TH_DATE,
-    TH_DATE_FROM,
-    STH_STAFF_ID,
-    SM_DEPT_CODE,
-    SM_STAFF_NAME,
+    SELECT TH_REF_ID "TH_REF_ID",
+    TH_TRAINING_TITLE "TH_TRAINING_TITLE",
+    TH_DATE "TH_DATE",
+    TH_DATE_FROM "TH_DATE_FROM",
+    STH_STAFF_ID "STH_STAFF_ID",
+    SM_DEPT_CODE "SM_DEPT_CODE",
+    SM_STAFF_NAME "SM_STAFF_NAME",
     (
         SELECT SS_SERVICE_DESC
         FROM SERVICE_SCHEME,STAFF_MAIN
         WHERE SM_JOB_CODE = SS_SERVICE_CODE
         AND SM_STAFF_ID = STH_STAFF_ID
-    ) JAWATAN,
+    ) "JAWATAN",
     (
         SELECT SS_SALARY_GRADE FROM SERVICE_SCHEME,STAFF_MAIN
         WHERE SM_JOB_CODE = SS_SERVICE_CODE
         AND SM_STAFF_ID = STH_STAFF_ID
-    ) SKIM_GRED,
+    ) "SKIM_GRED",
     (
         SELECT SS_SERVICE_KUMPP
         FROM SERVICE_SCHEME,STAFF_MAIN
         WHERE SM_JOB_CODE = SS_SERVICE_CODE
         AND SM_STAFF_ID = STH_STAFF_ID
-    ) KUMP,
+    ) "KUMP",
     (
         SELECT RM_RACE_DESC
         FROM RACE_MAIN,STAFF_MAIN
         WHERE SM_RACE = RM_RACE_CODE
         AND SM_STAFF_ID = STH_STAFF_ID
-    ) BANGSA,
+    ) "BANGSA",
     (
         SELECT GM_GENDER_DESC
         FROM GENDER_MAIN,STAFF_MAIN
         WHERE SM_GENDER = GM_GENDER_CODE
         AND SM_STAFF_ID = STH_STAFF_ID
-    ) JANTINA,
+    ) "JANTINA",
     (
         SELECT SM_BIRTH_DATE FROM STAFF_MAIN
         WHERE SM_STAFF_ID = STH_STAFF_ID
-    ) UMUR
+    ) "UMUR"
     FROM (
         SELECT TH_REF_ID,TH_TRAINING_TITLE,STH_STAFF_ID,SM_DEPT_CODE,SM_STAFF_NAME,
         TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TH_DATE,
@@ -106,9 +106,9 @@ FROM
         AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
         AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
         AND (($P{TRAINING_MONTH} IS NOT NULL AND $P{TRAINING_MONTH2} IS NOT NULL) AND (TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ($P{TRAINING_MONTH}||'/'|| $P{TRAINING_YEAR}) AND 
-        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NOT NULL AND $P{TRAINING_MONTH2} IS NULL) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ($P{TRAINING_MONTH}||'/'|| $P{TRAINING_YEAR}) AND 
-        ('12'||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NULL AND $P{TRAINING_MONTH2} IS NOT NULL) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ('01'||'/'|| $P{TRAINING_YEAR}) AND 
-        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR ($P{TRAINING_MONTH} IS NULL AND $P{TRAINING_MONTH2} IS NULL))
+        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NOT NULL AND ($P{TRAINING_MONTH2} IS NULL OR $P{TRAINING_MONTH2} = '')) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ($P{TRAINING_MONTH}||'/'|| $P{TRAINING_YEAR}) AND 
+        ('12'||'/'|| $P{TRAINING_YEAR})) OR ((($P{TRAINING_MONTH} IS NULL OR $P{TRAINING_MONTH} = '') AND $P{TRAINING_MONTH2} IS NOT NULL) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ('01'||'/'|| $P{TRAINING_YEAR}) AND 
+        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NULL OR $P{TRAINING_MONTH} = '') AND ($P{TRAINING_MONTH2} IS NULL) OR $P{TRAINING_MONTH2} = ''))
         AND TH_TYPE = 'S'
         UNION
         SELECT TH_REF_ID,TH_TRAINING_TITLE,STH_STAFF_ID,SM_DEPT_CODE,SM_STAFF_NAME,
@@ -125,13 +125,13 @@ FROM
         AND STD_ATTEND IN ('Y','A')
         AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
         AND (($P{TRAINING_MONTH} IS NOT NULL AND $P{TRAINING_MONTH2} IS NOT NULL) AND (TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ($P{TRAINING_MONTH}||'/'|| $P{TRAINING_YEAR}) AND 
-        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NOT NULL AND $P{TRAINING_MONTH2} IS NULL) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ($P{TRAINING_MONTH}||'/'|| $P{TRAINING_YEAR}) AND 
-        ('12'||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NULL AND $P{TRAINING_MONTH2} IS NOT NULL) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ('01'||'/'|| $P{TRAINING_YEAR}) AND 
-        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR ($P{TRAINING_MONTH} IS NULL AND $P{TRAINING_MONTH2} IS NULL))
+        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NOT NULL AND ($P{TRAINING_MONTH2} IS NULL OR $P{TRAINING_MONTH2} = '')) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ($P{TRAINING_MONTH}||'/'|| $P{TRAINING_YEAR}) AND 
+        ('12'||'/'|| $P{TRAINING_YEAR})) OR ((($P{TRAINING_MONTH} IS NULL OR $P{TRAINING_MONTH} = '') AND $P{TRAINING_MONTH2} IS NOT NULL) AND TO_CHAR(TH_DATE_FROM, 'mm/yyyy') BETWEEN ('01'||'/'|| $P{TRAINING_YEAR}) AND 
+        ($P{TRAINING_MONTH2}||'/'|| $P{TRAINING_YEAR})) OR (($P{TRAINING_MONTH} IS NULL OR $P{TRAINING_MONTH} = '') AND ($P{TRAINING_MONTH2} IS NULL OR $P{TRAINING_MONTH2} = '')))
         AND TH_TYPE = 'S'
-    )
+    ) AS A
     ORDER BY SM_DEPT_CODE,SM_STAFF_NAME
-) Q]]>
+) AS Q]]>
 		</queryString>
 		<field name="TH_REF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>
@@ -180,18 +180,49 @@ FROM
 	<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 	<parameter name="TRAINING_MONTH2" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE,
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE",
 CASE 
-WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY') IS NULL
+WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM'), 'MM')  IS NULL
 THEN 'Semua'
-ELSE TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY')
-END MONTH,
-CASE
-WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH2},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY') IS NULL
+ELSE 
+(
+CASE TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'), 'MM') 
+WHEN '01' THEN 'Januari'
+WHEN '02' THEN 'Februari'
+WHEN '03' THEN 'Mac'
+WHEN '04' THEN 'April'
+WHEN '05' THEN 'Mei'
+WHEN '06' THEN 'Jun'
+WHEN '07' THEN 'Julai'
+WHEN '08' THEN 'Ogos'
+WHEN '09' THEN 'September'
+WHEN '10' THEN 'Oktober'
+WHEN '11' THEN 'November'
+WHEN '12' THEN 'Disember'
+END 
+)
+END "MONTH",
+CASE 
+WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM'), 'MM')  IS NULL
 THEN 'Semua'
-ELSE TO_CHAR(TO_DATE($P{TRAINING_MONTH2},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY')
-END MONTH2
-FROM DUAL]]>
+ELSE 
+(
+CASE TO_CHAR(TO_DATE($P{TRAINING_MONTH2}, 'MM/YYYY'), 'MM') 
+WHEN '01' THEN 'Januari'
+WHEN '02' THEN 'Februari'
+WHEN '03' THEN 'Mac'
+WHEN '04' THEN 'April'
+WHEN '05' THEN 'Mei'
+WHEN '06' THEN 'Jun'
+WHEN '07' THEN 'Julai'
+WHEN '08' THEN 'Ogos'
+WHEN '09' THEN 'September'
+WHEN '10' THEN 'Oktober'
+WHEN '11' THEN 'November'
+WHEN '12' THEN 'Disember'
+END 
+)
+END "MONTH2"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

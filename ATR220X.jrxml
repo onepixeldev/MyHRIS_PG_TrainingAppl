@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR220X" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="762" leftMargin="40" rightMargin="40" topMargin="30" bottomMargin="30" uuid="8ce27e54-521e-42a3-bc9d-68fdbb8766f7">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.ignore.page.margins" value="true"/>
 	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
@@ -67,20 +67,20 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="79a44831-978c-433f-90f9-8bf32ec18b22">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
-TH_REF_ID,
-TH_DATE_FROM,
-TH_DATE,
-TH_TRAINING_VENUE,
-STH_TOTAL,
-ROUND((STH_TOTAL / TOTAL_STAFF) * 100,0) PERATUS_HADIR,
-(TOTAL_STAFF-STH_TOTAL) JUM_TIDAK_HADIR,
-ROUND(((TOTAL_STAFF-STH_TOTAL) / TOTAL_STAFF) * 100,0) PERATUS__TIDAK_HADIR,
-TOTAL_STAFF
+TH_REF_ID "TH_REF_ID",
+TH_DATE_FROM "TH_DATE_FROM",
+TH_DATE "TH_DATE",
+TH_TRAINING_VENUE "TH_TRAINING_VENUE",
+STH_TOTAL::NUMERIC "STH_TOTAL",
+ROUND((STH_TOTAL::NUMERIC / TOTAL_STAFF::NUMERIC) * 100,0) "PERATUS_HADIR",
+(TOTAL_STAFF::NUMERIC-STH_TOTAL::NUMERIC) "JUM_TIDAK_HADIR",
+ROUND(((TOTAL_STAFF::NUMERIC-STH_TOTAL::NUMERIC) / TOTAL_STAFF::NUMERIC) * 100,0) "PERATUS__TIDAK_HADIR",
+TOTAL_STAFF::NUMERIC "TOTAL_STAFF"
 FROM
 (
     SELECT 
@@ -132,9 +132,9 @@ FROM
         GROUP BY TH_REF_ID,TH_TRAINING_TITLE,
         TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
         TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM
-    )
+    ) AS A
     ORDER BY TH_DATE_FROM
-)]]>
+) AS B]]>
 		</queryString>
 		<field name="TH_REF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>
@@ -165,16 +165,16 @@ FROM
 		</field>
 	</subDataset>
 	<subDataset name="BIG_TOTAL" uuid="41980b63-8c49-4ec8-90f6-d209281aed61">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
-SUM(STH_TOTAL) SUM_BIL_HADIR,
-ROUND((SUM(STH_TOTAL) / SUM(TOTAL_STAFF)) * 100,0) PERATUS_BIL_HADIR,
-SUM(JUM_TIDAK_HADIR) SUM_TIDAK_HADIR,
-ROUND((SUM(JUM_TIDAK_HADIR) / SUM(TOTAL_STAFF)) * 100,0) PERATUS_BIL_TIDAK_HADIR,
-SUM(TOTAL_STAFF) SUM_TOTAL_STAFF
+SUM(STH_TOTAL::NUMERIC) "SUM_BIL_HADIR",
+ROUND((SUM(STH_TOTAL::NUMERIC) / SUM(TOTAL_STAFF::NUMERIC)) * 100,0) "PERATUS_BIL_HADIR",
+SUM(JUM_TIDAK_HADIR::NUMERIC) "SUM_TIDAK_HADIR",
+ROUND((SUM(JUM_TIDAK_HADIR::NUMERIC) / SUM(TOTAL_STAFF::NUMERIC)) * 100,0) "PERATUS_BIL_TIDAK_HADIR",
+SUM(TOTAL_STAFF::NUMERIC) "SUM_TOTAL_STAFF"
 FROM
 (
     SELECT
@@ -238,10 +238,10 @@ FROM
             GROUP BY TH_REF_ID,TH_TRAINING_TITLE,
             TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' - '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy'),
             TH_TRAINING_VENUE,TH_TRAINING_COUNTRY,TH_DATE_FROM
-        )
+        ) AS A
         ORDER BY TH_DATE_FROM
-    )
-)]]>
+    ) AS B
+) AS C]]>
 		</queryString>
 		<field name="SUM_BIL_HADIR" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="SUM_BIL_HADIR"/>
@@ -261,8 +261,7 @@ FROM
 	</subDataset>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE
-FROM DUAL]]>
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

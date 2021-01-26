@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR289" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="822" leftMargin="10" rightMargin="10" topMargin="20" bottomMargin="20" uuid="921e3cc6-117f-48eb-b578-393f871205e1">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="READ_ONLY_MYHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -44,22 +44,29 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="5d7963d1-e270-4f5b-8e38-e4cbe4537057">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="READ_ONLY_MYHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="DEPT" class="java.lang.String"/>
 		<parameter name="TRAINING_ID" class="java.lang.String"/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT SM_STAFF_ID, SM_STAFF_NAME, SM_DEPT_CODE,SS_SERVICE_DESC,TO_CHAR(SS_JOIN_DATE,'DD/MM/YYYY')  AS SS_JOIN_DATE,
-TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY')||' - '||TO_CHAR(TH_DATE_TO,'DD/MM/YYYY') AS TRAINING_DATE,TH_TRAINING_TITLE,THD_COORDINATOR,
-THD_COORDINATOR||' - '||GET_STAFF_NAME(THD_COORDINATOR) COOR_NAME,
+			<![CDATA[SELECT 
+SM_STAFF_ID "SM_STAFF_ID", 
+SM_STAFF_NAME "SM_STAFF_NAME", 
+SM_DEPT_CODE "SM_DEPT_CODE",
+SS_SERVICE_DESC "SS_SERVICE_DESC",
+TO_CHAR(SS_JOIN_DATE,'DD/MM/YYYY')  "SS_JOIN_DATE",
+TO_CHAR(TH_DATE_FROM,'DD/MM/YYYY')||' - '||TO_CHAR(TH_DATE_TO,'DD/MM/YYYY') "TRAINING_DATE",
+TH_TRAINING_TITLE "TH_TRAINING_TITLE",
+THD_COORDINATOR "THD_COORDINATOR",
+THD_COORDINATOR||' - '||GET_STAFF_NAME(THD_COORDINATOR) "COOR_NAME",
 (
 	SELECT TTH_TRAINING_TITLE AS TITLE
 	FROM TNA_TRAINING_HEAD,TRAINING_HEAD
 	WHERE TTH_REF_ID = TH_TRAINING_CODE
 	AND TH_REF_ID = $P{TRAINING_ID}
-) TRAINING_TITLE
+) "TRAINING_TITLE"
 FROM STAFF_MAIN,SERVICE_SCHEME,STAFF_SERVICE,TRAINING_HEAD,STAFF_TRAINING_HEAD,STAFF_TRAINING_DETL,
 TNA_TRAINING_HEAD,TRAINING_HEAD_DETL
 WHERE TH_REF_ID = THD_REF_ID
@@ -75,24 +82,28 @@ AND COALESCE(STD_ATTEND,'N') IN ('Y','A')
 AND TH_TRAINING_CODE = TTH_REF_ID
 AND COALESCE(TTH_STRUCTURED,'N') = 'Y'
 AND STH_STAFF_ID = SM_STAFF_ID
-AND TH_DATE_FROM <= SYSDATE
+AND TH_DATE_FROM <= CURRENT_DATE
 AND TH_REF_ID = $P{TRAINING_ID}
-and ($P{DEPT} is null or ($P{DEPT} is not null and SM_DEPT_CODE  = $P{DEPT}))
-AND ($P{TRAINING_MONTH} is null or ($P{TRAINING_MONTH} is not null AND TO_CHAR(TH_DATE_FROM,'MM')  = $P{TRAINING_MONTH}))
-AND ($P{TRAINING_YEAR} is null or ($P{TRAINING_YEAR} is not null AND TO_CHAR(TH_DATE_FROM,'YYYY')  = $P{TRAINING_YEAR}))
+and (($P{DEPT} is null or $P{DEPT} = '') or ($P{DEPT} is not null and SM_DEPT_CODE  = $P{DEPT}))
+AND (($P{TRAINING_MONTH} is null or $P{TRAINING_MONTH} = '') or ($P{TRAINING_MONTH} is not null AND TO_CHAR(TH_DATE_FROM,'MM')  = $P{TRAINING_MONTH}))
+AND (($P{TRAINING_YEAR} is null or $P{TRAINING_YEAR} = '') or ($P{TRAINING_YEAR} is not null AND TO_CHAR(TH_DATE_FROM,'YYYY')  = $P{TRAINING_YEAR}))
 ORDER BY SM_DEPT_CODE,SM_STAFF_ID]]>
 		</queryString>
 		<field name="SM_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SS_SERVICE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="SS_JOIN_DATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_JOIN_DATE"/>
@@ -102,9 +113,11 @@ ORDER BY SM_DEPT_CODE,SM_STAFF_ID]]>
 		</field>
 		<field name="TH_TRAINING_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="THD_COORDINATOR" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="THD_COORDINATOR"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head_detl"/>
 		</field>
 		<field name="COOR_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="COOR_NAME"/>
@@ -121,24 +134,40 @@ ORDER BY SM_DEPT_CODE,SM_STAFF_ID]]>
 	<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT DM_DEPT_CODE||' - '||DM_DEPT_DESC DEPT_DESC,
+		<![CDATA[SELECT
 (
 	SELECT TH_REF_ID||' - '||TH_TRAINING_TITLE AS TITLE
 	FROM TRAINING_HEAD
 	WHERE TH_REF_ID = $P{TRAINING_ID} 
-) TITLE,
-TRIM(TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM'),'MONTH', 'NLS_DATE_LANGUAGE = MALAY')) MONTH
-FROM DEPARTMENT_MAIN
-WHERE DM_DEPT_CODE =  $P{DEPT}]]>
+) "TITLE",
+CASE $P{TRAINING_MONTH}
+WHEN '01' THEN 'JANUARI'
+WHEN '02' THEN 'FEBRUARI'
+WHEN '03' THEN 'MAC'
+WHEN '04' THEN 'APRIL'
+WHEN '05' THEN 'MEI'
+WHEN '06' THEN 'JUN'
+WHEN '07' THEN 'JULAI'
+WHEN '08' THEN 'OGOS'
+WHEN '09' THEN 'SEPTEMBER'
+WHEN '10' THEN 'OKTOBER'
+WHEN '11' THEN 'NOVEMBER'
+WHEN '12' THEN 'DISEMBER'
+END AS "MONTH1", 
+(
+	SELECT DM_DEPT_CODE||' - '||DM_DEPT_DESC DEPT_DESC
+	FROM DEPARTMENT_MAIN
+	WHERE DM_DEPT_CODE =  $P{DEPT}
+) "DEPT_DESC"]]>
 	</queryString>
-	<field name="DEPT_DESC" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="DEPT_DESC"/>
-	</field>
 	<field name="TITLE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TITLE"/>
 	</field>
-	<field name="MONTH" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="MONTH"/>
+	<field name="MONTH1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="MONTH1"/>
+	</field>
+	<field name="DEPT_DESC" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="DEPT_DESC"/>
 	</field>
 	<variable name="COOR_NAME" class="java.lang.String"/>
 	<background>
@@ -249,7 +278,7 @@ WHERE DM_DEPT_CODE =  $P{DEPT}]]>
 						<font fontName="Arial" size="12"/>
 						<paragraph leftIndent="6"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($F{MONTH}==null?"-":$F{MONTH})+" / "+($P{TRAINING_YEAR}==null?"-":$P{TRAINING_YEAR})]]></textFieldExpression>
+					<textFieldExpression><![CDATA[($F{MONTH1}==null?"-":$F{MONTH1})+" / "+($P{TRAINING_YEAR}==null?"-":$P{TRAINING_YEAR})]]></textFieldExpression>
 				</textField>
 			</frame>
 		</band>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR249" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="b70d9934-2980-4077-afb4-e9ea7b93972d">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -44,18 +44,41 @@
 		</box>
 	</style>
 	<subDataset name="STAFF_LIST" uuid="4488657b-5f6e-4382-b385-2ae43e87d0a5">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_STH_STATUS" class="java.lang.String"/>
 		<parameter name="P_TH_DATE_FROM" class="java.lang.String"/>
 		<parameter name="P_TH_REF_ID" class="java.lang.String"/>
 		<parameter name="P_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT TH_REF_ID,UPPER(TH_TRAINING_TITLE) TH_TRAINING_TITLE,
-UPPER(DECODE(TH_TRAINING_VENUE,NULL,'',TH_TRAINING_VENUE)||DECODE(TH_TRAINING_STATE,NULL,'',', '||STATE_MAIN.SM_STATE_DESC)||
-DECODE(TH_TRAINING_COUNTRY,NULL,'',', '||COUNTRY_MAIN.CM_COUNTRY_DESC)) TH_VENUE,
-TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy')||' hingga : '||TO_CHAR(TH_DATE_TO,'dd-mm-yyyy') TH_DATE_FROM_TO, 
-UPPER(DECODE(SG_GROUP_DESC, NULL,'Terbuka',SG_GROUP_DESC)) SG_GROUP_DESC,
+			<![CDATA[SELECT TH_REF_ID "TH_REF_ID",
+UPPER(TH_TRAINING_TITLE) "TH_TRAINING_TITLE",
+UPPER
+(
+    (CASE 
+    WHEN TH_TRAINING_VENUE IS NULL 
+    THEN ''
+    ELSE TH_TRAINING_VENUE
+    END)
+    ||
+   (CASE 
+    WHEN TH_TRAINING_STATE IS NULL
+    THEN ''
+    ELSE ', '||STATE_MAIN.SM_STATE_DESC
+    END)
+    ||
+    (CASE
+    WHEN TH_TRAINING_COUNTRY IS NULL
+    THEN ''
+    ELSE ', '||COUNTRY_MAIN.CM_COUNTRY_DESC
+    END)
+) "TH_VENUE",
+TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy')||' hingga : '||TO_CHAR(TH_DATE_TO,'dd-mm-yyyy') "TH_DATE_FROM_TO", 
+CASE
+WHEN SG_GROUP_DESC IS NULL
+THEN 'Terbuka'
+ELSE SG_GROUP_DESC
+END "SG_GROUP_DESC",
 CASE 
 WHEN $P{P_STH_STATUS} = 'APPLY'
 THEN 'Memohon'
@@ -68,26 +91,40 @@ THEN 'Diluluskan'
 WHEN $P{P_STH_STATUS} = 'REJECT'
 THEN 'Ditolak'
 ELSE 'Dibatalkan'
-END AS STATUS,
-STH_STAFF_ID,TM_TITLE_DESC||' '||SM_STAFF_NAME SM_STAFF_NAME,SM_DEPT_CODE, SS_SERVICE_DESC,SS_SALARY_GRADE,DM_DEPT_DESC,
-STH_STATUS,DECODE(UPPER(STD_TRANSPORTATION),'UPSI','UPSI','OWN_SHARING','Sendiri / Berkongsi',NULL,'-')TRANSPORT
-FROM STAFF_TRAINING_HEAD,STAFF_MAIN,TRAINING_HEAD,TRAINING_TYPE,DEPARTMENT_MAIN, COUNTRY_MAIN, SERVICE_GROUP,STATE_MAIN,SERVICE_SCHEME,TITLE_MAIN,STAFF_TRAINING_DETL
-WHERE SM_STAFF_ID = STH_STAFF_ID
-AND STH_TRAINING_REFID = STD_TRAINING_REFID
-AND STH_STAFF_ID = STD_STAFF_ID
-AND DM_DEPT_CODE(+) = SM_DEPT_CODE
-AND SM_JOB_CODE = SS_SERVICE_CODE(+)
-AND SM_STAS_TITLE = TM_TITLE_CODE(+)
-AND TH_REF_ID = STH_TRAINING_REFID
-AND TH_TRAINING_COUNTRY=CM_COUNTRY_CODE(+)
-AND SM_STATE_CODE(+)=TH_TRAINING_STATE
-AND SG_GROUP_CODE(+)=TH_SERVICE_GROUP
-AND TT_CODE(+) = TH_TYPE
-AND TH_INTERNAL_EXTERNAL = 'EXTERNAL'
+END AS "STATUS",
+STH_STAFF_ID "STH_STAFF_ID",
+TM_TITLE_DESC||' '||SM_STAFF_NAME "SM_STAFF_NAME",
+SM_DEPT_CODE "SM_DEPT_CODE", 
+SS_SERVICE_DESC "SS_SERVICE_DESC",
+SS_SALARY_GRADE "SS_SALARY_GRADE",
+DM_DEPT_DESC "DM_DEPT_DESC",
+STH_STATUS "STH_STATUS",
+UPPER(
+	CASE
+    WHEN STD_TRANSPORTATION = 'UPSI'
+    THEN 'UPSI'
+    WHEN STD_TRANSPORTATION = 'OWN_SHARING'
+    THEN 'Sendiri / Berkongsi'
+    WHEN STD_TRANSPORTATION IS NULL
+    THEN '-'
+    END
+) "TRANSPORT"
+FROM STAFF_TRAINING_HEAD
+FULL OUTER JOIN STAFF_MAIN ON SM_STAFF_ID = STH_STAFF_ID
+FULL OUTER JOIN TRAINING_HEAD ON TH_REF_ID = STH_TRAINING_REFID
+FULL OUTER JOIN TRAINING_TYPE ON TT_CODE = TH_TYPE
+FULL OUTER JOIN DEPARTMENT_MAIN ON DM_DEPT_CODE = SM_DEPT_CODE
+FULL OUTER JOIN COUNTRY_MAIN ON TH_TRAINING_COUNTRY=CM_COUNTRY_CODE
+FULL OUTER JOIN SERVICE_GROUP ON SG_GROUP_CODE=TH_SERVICE_GROUP
+FULL OUTER JOIN STATE_MAIN ON SM_STATE_CODE=TH_TRAINING_STATE
+FULL OUTER JOIN SERVICE_SCHEME ON SM_JOB_CODE = SS_SERVICE_CODE
+FULL OUTER JOIN TITLE_MAIN ON SM_STAS_TITLE = TM_TITLE_CODE
+FULL OUTER JOIN STAFF_TRAINING_DETL ON STH_TRAINING_REFID = STD_TRAINING_REFID AND STH_STAFF_ID = STD_STAFF_ID
+WHERE TH_INTERNAL_EXTERNAL = 'EXTERNAL'
 AND STH_PARTICIPANT_ROLE = 'D'
-AND ($P{P_YEAR} IS NULL OR ($P{P_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_YEAR}))
-AND ($P{P_TH_REF_ID} IS NULL OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
-AND ($P{P_TH_DATE_FROM} IS NULL OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
+AND (($P{P_YEAR} IS NULL OR $P{P_YEAR} = '') OR ($P{P_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_YEAR}))
+AND (($P{P_TH_REF_ID} IS NULL OR $P{P_TH_REF_ID} = '') OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
+AND (($P{P_TH_DATE_FROM} IS NULL OR $P{P_TH_DATE_FROM} = '') OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
 AND STH_STAFF_ID IN
 (
     SELECT STH_STAFF_ID
@@ -173,10 +210,29 @@ AND STH_STAFF_ID IN
     AND STH_PARTICIPANT_ROLE = 'D'
     AND STH_TRAINING_REFID = $P{P_TH_REF_ID}
 )
-ORDER BY DECODE(STD_TRANSPORTATION,'UPSI','UPSI','OWN_SHARING','Sendiri / Berkongsi') DESC,DECODE(LENGTH(SS_SALARY_GRADE),2,SUBSTR(SS_SALARY_GRADE,2,1),3,SUBSTR(SS_SALARY_GRADE,2,2),4,SUBSTR(SS_SALARY_GRADE,3,2),5,SUBSTR(SS_SALARY_GRADE,4,2)) DESC,SS_SERVICE_DESC,DM_DEPT_DESC,STH_STAFF_ID]]>
+ORDER BY 
+(CASE 
+WHEN STD_TRANSPORTATION = 'UPSI'
+THEN 'UPSI'
+WHEN STD_TRANSPORTATION = 'OWN_SHARING'
+THEN 'Sendiri / Berkongsi'
+WHEN STD_TRANSPORTATION IS NULL
+THEN '-'
+END) DESC,
+(CASE 
+WHEN LENGTH(SS_SALARY_GRADE) = 2
+THEN SUBSTR(SS_SALARY_GRADE,2,1)
+WHEN LENGTH(SS_SALARY_GRADE) = 3 
+THEN SUBSTR(SS_SALARY_GRADE,2,2)
+WHEN LENGTH(SS_SALARY_GRADE) = 4
+THEN SUBSTR(SS_SALARY_GRADE,3,2)
+WHEN LENGTH(SS_SALARY_GRADE) = 5
+THEN SUBSTR(SS_SALARY_GRADE,4,2)
+END) DESC,SS_SERVICE_DESC,DM_DEPT_DESC,STH_STAFF_ID]]>
 		</queryString>
 		<field name="TH_REF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 		<field name="TH_TRAINING_TITLE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
@@ -195,58 +251,63 @@ ORDER BY DECODE(STD_TRANSPORTATION,'UPSI','UPSI','OWN_SHARING','Sendiri / Berkon
 		</field>
 		<field name="STH_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="STH_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_training_head"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
 		</field>
 		<field name="SM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SS_SERVICE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="SS_SALARY_GRADE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SALARY_GRADE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="DM_DEPT_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 		</field>
 		<field name="STH_STATUS" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="STH_STATUS"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_training_head"/>
 		</field>
 		<field name="TRANSPORT" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TRANSPORT"/>
 		</field>
 	</subDataset>
 	<subDataset name="TOTAL_STAFF" uuid="aac3a883-4e41-4ab4-bfdc-c18d99ce9fe5">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_STH_STATUS" class="java.lang.String"/>
 		<parameter name="P_TH_DATE_FROM" class="java.lang.String"/>
 		<parameter name="P_TH_REF_ID" class="java.lang.String"/>
 		<parameter name="P_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT COUNT(STH_STAFF_ID) TOTAL_STAFF
+			<![CDATA[SELECT COUNT(STH_STAFF_ID)::NUMERIC "TOTAL_STAFF"
 FROM
 (
     SELECT STH_STAFF_ID,TM_TITLE_DESC||' '||SM_STAFF_NAME SM_STAFF_NAME
-    FROM STAFF_TRAINING_HEAD,STAFF_MAIN,TRAINING_HEAD,TRAINING_TYPE,DEPARTMENT_MAIN, COUNTRY_MAIN, SERVICE_GROUP,STATE_MAIN,SERVICE_SCHEME,TITLE_MAIN,STAFF_TRAINING_DETL
-    WHERE SM_STAFF_ID = STH_STAFF_ID
-    AND STH_TRAINING_REFID = STD_TRAINING_REFID
-    AND STH_STAFF_ID = STD_STAFF_ID
-    AND DM_DEPT_CODE(+) = SM_DEPT_CODE
-    AND SM_JOB_CODE = SS_SERVICE_CODE(+)
-    AND SM_STAS_TITLE = TM_TITLE_CODE(+)
-    AND TH_REF_ID = STH_TRAINING_REFID
-    AND TH_TRAINING_COUNTRY=CM_COUNTRY_CODE(+)
-    AND SM_STATE_CODE(+)=TH_TRAINING_STATE
-    AND SG_GROUP_CODE(+)=TH_SERVICE_GROUP
-    AND TT_CODE(+) = TH_TYPE
-    AND TH_INTERNAL_EXTERNAL = 'EXTERNAL'
+    FROM STAFF_TRAINING_HEAD
+    FULL OUTER JOIN STAFF_MAIN ON SM_STAFF_ID = STH_STAFF_ID
+    FULL OUTER JOIN TRAINING_HEAD ON TH_REF_ID = STH_TRAINING_REFID
+    FULL OUTER JOIN TRAINING_TYPE ON TT_CODE = TH_TYPE
+    FULL OUTER JOIN DEPARTMENT_MAIN ON DM_DEPT_CODE = SM_DEPT_CODE
+    FULL OUTER JOIN COUNTRY_MAIN ON TH_TRAINING_COUNTRY=CM_COUNTRY_CODE
+    FULL OUTER JOIN SERVICE_GROUP ON SG_GROUP_CODE=TH_SERVICE_GROUP
+    FULL OUTER JOIN STATE_MAIN ON SM_STATE_CODE=TH_TRAINING_STATE
+    FULL OUTER JOIN SERVICE_SCHEME ON SM_JOB_CODE = SS_SERVICE_CODE
+    FULL OUTER JOIN TITLE_MAIN ON SM_STAS_TITLE = TM_TITLE_CODE
+    FULL OUTER JOIN STAFF_TRAINING_DETL ON STH_TRAINING_REFID = STD_TRAINING_REFID AND STH_STAFF_ID = STD_STAFF_ID
+    WHERE TH_INTERNAL_EXTERNAL = 'EXTERNAL'
     AND STH_PARTICIPANT_ROLE = 'D'
-    AND ($P{P_YEAR} IS NULL OR ($P{P_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_YEAR}))
-    AND ($P{P_TH_REF_ID} IS NULL OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
-    AND ($P{P_TH_DATE_FROM} IS NULL OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
+    AND (($P{P_YEAR} IS NULL OR $P{P_YEAR} = '') OR ($P{P_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_YEAR}))
+    AND (($P{P_TH_REF_ID} IS NULL OR $P{P_TH_REF_ID} = '') OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
+    AND (($P{P_TH_DATE_FROM} IS NULL OR $P{P_TH_DATE_FROM} = '') OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
     AND STH_STAFF_ID IN
     (
         SELECT STH_STAFF_ID
@@ -332,19 +393,19 @@ FROM
         AND STH_PARTICIPANT_ROLE = 'D'
         AND STH_TRAINING_REFID = $P{P_TH_REF_ID}
     )
-)]]>
+) A]]>
 		</queryString>
 		<field name="TOTAL_STAFF" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="TOTAL_STAFF"/>
 		</field>
 	</subDataset>
 	<subDataset name="TOTAL_T_UPSI" uuid="fa1b0503-8eee-42fd-83f7-2df606d71021">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_STH_STATUS" class="java.lang.String"/>
 		<parameter name="P_TH_REF_ID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT COUNT(1) TOTAL_T_UPSI
+			<![CDATA[SELECT COUNT(1)::NUMERIC "TOTAL_T_UPSI"
 FROM STAFF_TRAINING_HEAD STH,TRAINING_HEAD,STAFF_TRAINING_DETL
 WHERE STD_TRANSPORTATION = 'UPSI'
 AND STH_TRAINING_REFID = STD_TRAINING_REFID
@@ -352,7 +413,7 @@ AND STH_STAFF_ID = STD_STAFF_ID
 AND TH_REF_ID = STH_TRAINING_REFID
 AND TH_INTERNAL_EXTERNAL = 'EXTERNAL'
 AND STH_PARTICIPANT_ROLE = 'D'
-AND ($P{P_TH_REF_ID} IS NULL OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
+AND (($P{P_TH_REF_ID} IS NULL OR $P{P_TH_REF_ID} = '') OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
 AND STH_STAFF_ID IN
 (
     SELECT STH_STAFF_ID
@@ -444,12 +505,12 @@ AND STH_STAFF_ID IN
 		</field>
 	</subDataset>
 	<subDataset name="TOTAL_T_OWN" uuid="a6a01052-bb43-444a-a07c-e941d293a53e">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_STH_STATUS" class="java.lang.String"/>
 		<parameter name="P_TH_REF_ID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT COUNT(1) TOTAL_T_OWN
+			<![CDATA[SELECT COUNT(1)::NUMERIC "TOTAL_T_OWN"
 FROM STAFF_TRAINING_HEAD,TRAINING_HEAD,STAFF_TRAINING_DETL
 WHERE STD_TRANSPORTATION = 'OWN_SHARING'
 AND STH_TRAINING_REFID = STD_TRAINING_REFID
@@ -457,7 +518,7 @@ AND STH_STAFF_ID = STD_STAFF_ID
 AND TH_REF_ID = STH_TRAINING_REFID
 AND TH_INTERNAL_EXTERNAL = 'EXTERNAL'
 AND STH_PARTICIPANT_ROLE = 'D'
-AND ($P{P_TH_REF_ID} IS NULL OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
+AND (($P{P_TH_REF_ID} IS NULL OR $P{P_TH_REF_ID} = '') OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
 AND STH_STAFF_ID IN
 (
     SELECT STH_STAFF_ID
@@ -553,11 +614,33 @@ AND STH_STAFF_ID IN
 	<parameter name="P_TH_REF_ID" class="java.lang.String"/>
 	<parameter name="P_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT DISTINCT UPPER(TH_TRAINING_TITLE) TH_TRAINING_TITLE,
-UPPER(DECODE(TH_TRAINING_VENUE,NULL,'',TH_TRAINING_VENUE)||DECODE(TH_TRAINING_STATE,NULL,'',', '||STATE_MAIN.SM_STATE_DESC)||
-DECODE(TH_TRAINING_COUNTRY,NULL,'',', '||COUNTRY_MAIN.CM_COUNTRY_DESC)) TH_VENUE,
-TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy')||' hingga : '||TO_CHAR(TH_DATE_TO,'dd-mm-yyyy') TH_DATE_FROM_TO, 
-UPPER(DECODE(SG_GROUP_DESC, NULL,'Terbuka',SG_GROUP_DESC)) SG_GROUP_DESC,
+		<![CDATA[SELECT DISTINCT UPPER(TH_TRAINING_TITLE) "TH_TRAINING_TITLE",
+UPPER
+(
+    (CASE 
+    WHEN TH_TRAINING_VENUE IS NULL 
+    THEN ''
+    ELSE TH_TRAINING_VENUE
+    END)
+    ||
+   (CASE 
+    WHEN TH_TRAINING_STATE IS NULL
+    THEN ''
+    ELSE ', '||STATE_MAIN.SM_STATE_DESC
+    END)
+    ||
+    (CASE
+    WHEN TH_TRAINING_COUNTRY IS NULL
+    THEN ''
+    ELSE ', '||COUNTRY_MAIN.CM_COUNTRY_DESC
+    END)
+) "TH_VENUE",
+TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy')||' hingga : '||TO_CHAR(TH_DATE_TO,'dd-mm-yyyy') "TH_DATE_FROM_TO", 
+CASE
+WHEN SG_GROUP_DESC IS NULL
+THEN 'Terbuka'
+ELSE SG_GROUP_DESC
+END "SG_GROUP_DESC",
 CASE 
 WHEN $P{P_STH_STATUS} = 'APPLY'
 THEN 'Memohon'
@@ -570,25 +653,24 @@ THEN 'Diluluskan'
 WHEN $P{P_STH_STATUS} = 'REJECT'
 THEN 'Ditolak'
 ELSE 'Dibatalkan'
-END AS STATUS,
-TO_CHAR(SYSDATE,'DD-MM-YYYY HH:MI PM') CURR_DATE_TIME
-FROM STAFF_TRAINING_HEAD,STAFF_MAIN,TRAINING_HEAD,TRAINING_TYPE,DEPARTMENT_MAIN, COUNTRY_MAIN, SERVICE_GROUP,STATE_MAIN,SERVICE_SCHEME,TITLE_MAIN,STAFF_TRAINING_DETL
-WHERE SM_STAFF_ID = STH_STAFF_ID
-AND STH_TRAINING_REFID = STD_TRAINING_REFID
-AND STH_STAFF_ID = STD_STAFF_ID
-AND DM_DEPT_CODE(+) = SM_DEPT_CODE
-AND SM_JOB_CODE = SS_SERVICE_CODE(+)
-AND SM_STAS_TITLE = TM_TITLE_CODE(+)
-AND TH_REF_ID = STH_TRAINING_REFID
-AND TH_TRAINING_COUNTRY=CM_COUNTRY_CODE(+)
-AND SM_STATE_CODE(+)=TH_TRAINING_STATE
-AND SG_GROUP_CODE(+)=TH_SERVICE_GROUP
-AND TT_CODE(+) = TH_TYPE
-AND TH_INTERNAL_EXTERNAL = 'EXTERNAL'
+END AS "STATUS",
+TO_CHAR(NOW(),'DD-MM-YYYY HH:MI PM') "CURR_DATE_TIME"
+FROM STAFF_TRAINING_HEAD
+FULL OUTER JOIN STAFF_MAIN ON SM_STAFF_ID = STH_STAFF_ID
+FULL OUTER JOIN TRAINING_HEAD ON TH_REF_ID = STH_TRAINING_REFID
+FULL OUTER JOIN TRAINING_TYPE ON TT_CODE = TH_TYPE
+FULL OUTER JOIN DEPARTMENT_MAIN ON DM_DEPT_CODE = SM_DEPT_CODE
+FULL OUTER JOIN COUNTRY_MAIN ON TH_TRAINING_COUNTRY=CM_COUNTRY_CODE
+FULL OUTER JOIN SERVICE_GROUP ON SG_GROUP_CODE=TH_SERVICE_GROUP
+FULL OUTER JOIN STATE_MAIN ON SM_STATE_CODE=TH_TRAINING_STATE
+FULL OUTER JOIN SERVICE_SCHEME ON SM_JOB_CODE = SS_SERVICE_CODE
+FULL OUTER JOIN TITLE_MAIN ON SM_STAS_TITLE = TM_TITLE_CODE
+FULL OUTER JOIN STAFF_TRAINING_DETL ON STH_TRAINING_REFID = STD_TRAINING_REFID AND STH_STAFF_ID = STD_STAFF_ID
+WHERE TH_INTERNAL_EXTERNAL = 'EXTERNAL'
 AND STH_PARTICIPANT_ROLE = 'D'
-AND ($P{P_YEAR} IS NULL OR ($P{P_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_YEAR}))
-AND ($P{P_TH_REF_ID} IS NULL OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
-AND ($P{P_TH_DATE_FROM} IS NULL OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
+AND (($P{P_YEAR} IS NULL OR $P{P_YEAR} = '') OR ($P{P_YEAR} IS NOT NULL AND TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_YEAR}))
+AND (($P{P_TH_REF_ID} IS NULL OR $P{P_TH_REF_ID} = '') OR ($P{P_TH_REF_ID} IS NOT NULL AND STH_TRAINING_REFID = $P{P_TH_REF_ID}))
+AND (($P{P_TH_DATE_FROM} IS NULL OR $P{P_TH_DATE_FROM} = '') OR ($P{P_TH_DATE_FROM} IS NOT NULL AND (TO_CHAR(TH_DATE_FROM,'yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'mm-yyyy') = $P{P_TH_DATE_FROM} OR TO_CHAR(TH_DATE_FROM,'dd-mm-yyyy') = $P{P_TH_DATE_FROM})))
 AND STH_STAFF_ID IN
 (
     SELECT STH_STAFF_ID

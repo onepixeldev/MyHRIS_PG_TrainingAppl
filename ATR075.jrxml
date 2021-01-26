@@ -459,7 +459,7 @@ FROM
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
-					<imageExpression><![CDATA["/TrainingAppl/images/Logo_UPSI_ORI.png"]]></imageExpression>
+					<imageExpression><![CDATA["repo:/Reports/Images/Logo_UPSI_2018_Confirm_With_Stroke.png"]]></imageExpression>
 				</image>
 				<frame>
 					<reportElement x="0" y="92" width="250" height="38" uuid="c2c87242-293f-467a-a758-83968e14df7c"/>

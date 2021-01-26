@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR045" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="575" leftMargin="10" rightMargin="10" topMargin="20" bottomMargin="20" uuid="47b8fb2a-a283-47a6-809f-1d2a0a919d7b">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -17,12 +17,19 @@
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR045_files/main_jrxml"/>
 	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR045"/>
 	<subDataset name="STAFF_LIST" uuid="6cc2d593-36e9-48fe-a346-e72231fcdd7f">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="P_STH_STATUS" class="java.lang.String"/>
 		<parameter name="STAFF_ID" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT Q.*
+			<![CDATA[SELECT 
+STH_STAFF_ID "STH_STAFF_ID",
+TH_TRAINING_TITLE "TH_TRAINING_TITLE",
+TH_DATE "TH_DATE", 
+TH_DATE_FROM "TH_DATE_FROM", 
+TH_TRAINING_VENUE "TH_TRAINING_VENUE",
+STH_TRAINING_REFID "STH_TRAINING_REFID",
+STH_STATUS "STH_STATUS"
 FROM
 (
     SELECT STH_STAFF_ID,TH_TRAINING_TITLE,
@@ -30,7 +37,7 @@ FROM
     STH_STATUS
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
     WHERE TH_REF_ID = STH_TRAINING_REFID
-    AND TH_DATE_FROM < SYSDATE
+    AND TH_DATE_FROM < CURRENT_DATE
     AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
     AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
     AND $P{P_STH_STATUS} = 'APPROVE'
@@ -41,7 +48,7 @@ FROM
     STH_STATUS
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
     WHERE TH_REF_ID = STH_TRAINING_REFID
-    AND TH_DATE_FROM < SYSDATE
+    AND TH_DATE_FROM < CURRENT_DATE
     AND TH_INTERNAL_EXTERNAL = 'EXTERNAL_AGENCY'
     AND $P{P_STH_STATUS} = 'APPROVE'
     AND STH_STATUS = 'APPROVE'
@@ -63,7 +70,7 @@ FROM
     STH_STATUS
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
     WHERE TH_REF_ID = STH_TRAINING_REFID
-    AND TH_DATE_FROM < SYSDATE
+    AND TH_DATE_FROM < CURRENT_DATE
     AND TH_INTERNAL_EXTERNAL <> 'EXTERNAL_AGENCY'
     AND TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
     AND $P{P_STH_STATUS} = 'REJECT'
@@ -74,7 +81,7 @@ FROM
     STH_STATUS
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
     WHERE TH_REF_ID = STH_TRAINING_REFID
-    AND TH_DATE_FROM < SYSDATE
+    AND TH_DATE_FROM < CURRENT_DATE
     AND TH_INTERNAL_EXTERNAL = 'EXTERNAL_AGENCY'
     AND $P{P_STH_STATUS} = 'REJECT'
     AND STH_STATUS = 'REJECT'
@@ -134,7 +141,7 @@ FROM
     AND UPPER(PCM_COURSE_NAME) LIKE '%BTN%'
     AND SPC_STATUS = 'APPROVE'
     AND $P{P_STH_STATUS} = 'APPROVE'
-    AND PCM_DATE_FROM < SYSDATE
+    AND PCM_DATE_FROM < CURRENT_DATE
     AND SPC_STAFF_ID NOT IN
     (SELECT STH_STAFF_ID
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
@@ -150,7 +157,7 @@ FROM
     AND UPPER(PCM_COURSE_NAME) LIKE '%BTN%'
     AND SPC_STATUS = 'RECOMMEND'
     AND $P{P_STH_STATUS} = 'RECOMMEND'
-    AND PCM_DATE_FROM < SYSDATE
+    AND PCM_DATE_FROM < CURRENT_DATE
     AND SPC_STAFF_ID NOT IN
     (SELECT STH_STAFF_ID
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
@@ -166,7 +173,7 @@ FROM
     AND UPPER(PCM_COURSE_NAME) LIKE '%BTN%'
     AND SPC_STATUS = 'APPLY'
     AND $P{P_STH_STATUS} = 'APPLY'
-    AND PCM_DATE_FROM < SYSDATE
+    AND PCM_DATE_FROM < CURRENT_DATE
     AND SPC_STAFF_ID NOT IN
     (SELECT STH_STAFF_ID
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
@@ -182,7 +189,7 @@ FROM
     AND UPPER(PCM_COURSE_NAME) LIKE '%BTN%'
     AND SPC_STATUS = 'REJECT'
     AND $P{P_STH_STATUS} = 'REJECT'
-    AND PCM_DATE_FROM < SYSDATE
+    AND PCM_DATE_FROM < CURRENT_DATE
     AND SPC_STAFF_ID NOT IN
     (SELECT STH_STAFF_ID
     FROM STAFF_TRAINING_HEAD,TRAINING_HEAD
@@ -219,13 +226,21 @@ WHERE STH_STAFF_ID = $P{STAFF_ID}]]>
 	<parameter name="P_SM_UNIT" class="java.lang.String"/>
 	<parameter name="P_STH_STATUS" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT SM_DEPT_CODE,DM_DEPT_DESC,SM_UNIT,SM_STAFF_NAME,SM_STAFF_ID,
-SS_SERVICE_DESC,TM_TITLE_DESC||' '||SM_STAFF_NAME||CHR(10)||CHR(10)||'('||(
+		<![CDATA[SELECT 
+SM_DEPT_CODE "SM_DEPT_CODE",
+DM_DEPT_DESC "DM_DEPT_DESC",
+SM_UNIT "SM_UNIT",
+SM_STAFF_NAME "SM_STAFF_NAME",
+SM_STAFF_ID "SM_STAFF_ID",
+SS_SERVICE_DESC "SS_SERVICE_DESC",
+TM_TITLE_DESC||' '||SM_STAFF_NAME||CHR(10)||CHR(10)||'('||(
     SELECT DM_DEPT_DESC
     FROM DEPARTMENT_MAIN
     WHERE DM_DEPT_CODE = SM_UNIT
-)||')'  TM_TITLE_DESC,
-SS_SALARY_GRADE,SS_CLASS_CODE,SS_SCHEME_CODE,
+)||')'  "TM_TITLE_DESC",
+SS_SALARY_GRADE "SS_SALARY_GRADE",
+SS_CLASS_CODE "SS_CLASS_CODE",
+SS_SCHEME_CODE "SS_SCHEME_CODE",
 CASE 
 WHEN $P{P_STH_STATUS} = 'APPLY'  
 THEN 'Memohon'
@@ -240,7 +255,7 @@ THEN 'Ditolak'
 WHEN $P{P_STH_STATUS} = 'CANCEL'
 THEN 'Dibatalkan'
 ELSE 'Semua'
-END AS STATUS
+END AS "STATUS"
 FROM STAFF_MAIN,SERVICE_SCHEME,DEPARTMENT_MAIN,TITLE_MAIN,STAFF_STATUS
 WHERE SM_JOB_CODE = SS_SERVICE_CODE
 AND SM_DEPT_CODE = DM_DEPT_CODE
@@ -248,39 +263,50 @@ AND SM_STAS_TITLE = TM_TITLE_CODE
 AND SM_STAFF_STATUS = SS_STATUS_CODE
 AND SM_STAFF_TYPE = 'STAFF'
 AND SS_STATUS_STS = 'ACTIVE'
-AND ($P{P_SM_DEPT_CODE} IS NULL OR ($P{P_SM_DEPT_CODE} IS NOT NULL AND SM_DEPT_CODE = $P{P_SM_DEPT_CODE}))
-AND ($P{P_SM_UNIT} IS NULL OR ($P{P_SM_UNIT} IS NOT NULL AND SM_UNIT = $P{P_SM_UNIT}))
-ORDER BY DM_DEPT_DESC,TO_NUMBER(COALESCE(TRANSLATE(UPPER(SS_SALARY_GRADE),'01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ','0123456789'),'-1')) DESC,SS_CLASS_CODE,SM_STAFF_ID]]>
+AND (($P{P_SM_DEPT_CODE} IS NULL OR $P{P_SM_DEPT_CODE} = '') OR ($P{P_SM_DEPT_CODE} IS NOT NULL AND SM_DEPT_CODE = $P{P_SM_DEPT_CODE}))
+AND (($P{P_SM_UNIT} IS NULL OR $P{P_SM_UNIT} = '') OR ($P{P_SM_UNIT} IS NOT NULL AND SM_UNIT = $P{P_SM_UNIT}))
+ORDER BY DM_DEPT_DESC,
+COALESCE(TRANSLATE(UPPER(SS_SALARY_GRADE),'01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ','0123456789'),'-1')::NUMERIC DESC,
+SS_CLASS_CODE,SM_STAFF_ID]]>
 	</queryString>
 	<field name="SM_DEPT_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="DM_DEPT_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="DM_DEPT_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="department_main"/>
 	</field>
 	<field name="SM_UNIT" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_UNIT"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="SM_STAFF_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="SM_STAFF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="SS_SERVICE_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 	</field>
 	<field name="TM_TITLE_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TM_TITLE_DESC"/>
 	</field>
 	<field name="SS_SALARY_GRADE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SS_SALARY_GRADE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 	</field>
 	<field name="SS_CLASS_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SS_CLASS_CODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 	</field>
 	<field name="SS_SCHEME_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SS_SCHEME_CODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 	</field>
 	<field name="STATUS" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="STATUS"/>

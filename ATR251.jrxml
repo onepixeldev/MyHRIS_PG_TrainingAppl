@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR251" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="40" bottomMargin="40" uuid="871c3bf7-cbb0-4f4f-b668-0b3fc2b64405">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -18,17 +18,62 @@
 	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR251"/>
 	<parameter name="REFID" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT Q.*,
-TSR_PARTICIPANT_DISCIPLINE, TSR_PARTICIPANT_TIME,TSR_PARTICIPANT_REMARK,
-TSR_CAFE_NAME, TSR_CAFE_TIME,TSR_CAFE_QUALITY,TSR_CAFE_REMARK,
-TSR_ROOM_CHAIR,TSR_ROOM_DESK,TSR_ROOM_AIRCOND,TSR_ROOM_LAMP,TSR_ROOM_REMARK,
-TSR_EQUIPMENT_COMPUTER,TSR_EQUIPMENT_LASERPOINTER,TSR_EQUIPMENT_LCD,TSR_EQUIPMENT_PASYSTEM,TSR_EQUIPMENT_REMARK,
-TSR_OVERALL_REPORT
+		<![CDATA[SELECT 
+TH_TRAINING_TITLE "TH_TRAINING_TITLE",
+TH_TRAINING_VENUE "TH_TRAINING_VENUE",
+TARIKH "TARIKH",
+TH_DATE_FROM "TH_DATE_FROM",
+TH_REF_ID "TH_REF_ID",
+TSR_PARTICIPANT_DISCIPLINE "TSR_PARTICIPANT_DISCIPLINE", 
+TSR_PARTICIPANT_TIME "TSR_PARTICIPANT_TIME",
+TSR_PARTICIPANT_REMARK "TSR_PARTICIPANT_REMARK",
+TSR_CAFE_NAME "TSR_CAFE_NAME", 
+TSR_CAFE_TIME "TSR_CAFE_TIME",
+TSR_CAFE_QUALITY "TSR_CAFE_QUALITY",
+TSR_CAFE_REMARK "TSR_CAFE_REMARK",
+TSR_ROOM_CHAIR "TSR_ROOM_CHAIR",
+TSR_ROOM_DESK "TSR_ROOM_DESK",
+TSR_ROOM_AIRCOND "TSR_ROOM_AIRCOND",
+TSR_ROOM_LAMP "TSR_ROOM_LAMP",
+TSR_ROOM_REMARK "TSR_ROOM_REMARK",
+TSR_EQUIPMENT_COMPUTER "TSR_EQUIPMENT_COMPUTER",
+TSR_EQUIPMENT_LASERPOINTER "TSR_EQUIPMENT_LASERPOINTER",
+TSR_EQUIPMENT_LCD "TSR_EQUIPMENT_LCD",
+TSR_EQUIPMENT_PASYSTEM "TSR_EQUIPMENT_PASYSTEM",
+TSR_EQUIPMENT_REMARK "TSR_EQUIPMENT_REMARK",
+TSR_OVERALL_REPORT "TSR_OVERALL_REPORT",
+KEHADIRAN "KEHADIRAN",
+CF_DISIPLIN_BAIK "CF_DISIPLIN_BAIK",
+CF_DISIPLIN_TIDAKBAIK "CF_DISIPLIN_TIDAKBAIK",
+CF_TIME_BAIK "CF_TIME_BAIK",
+CF_TIME_TIDAKBAIK "CF_TIME_TIDAKBAIK",
+CF_CAFETIME_BAIK "CF_CAFETIME_BAIK",
+CF_CAFETIME_TIDAKBAIK "CF_CAFETIME_TIDAKBAIK",
+CF_CAFEQUALITY_BAIK "CF_CAFEQUALITY_BAIK",
+CF_CAFEQUALITY_TIDAKBAIK "CF_CAFEQUALITY_TIDAKBAIK",
+CF_ROOMCHAIR_BAIK "CF_ROOMCHAIR_BAIK",
+CF_ROOMCHAIR_TIDAKBAIK "CF_ROOMCHAIR_TIDAKBAIK",
+CF_ROOMDESK_BAIK "CF_ROOMDESK_BAIK",
+CF_ROOMDESK_TIDAKBAIK "CF_ROOMDESK_TIDAKBAIK",
+CF_ROOMAIRCOND_BAIK "CF_ROOMAIRCOND_BAIK",
+CF_ROOMAIRCOND_TIDAKBAIK "CF_ROOMAIRCOND_TIDAKBAIK",
+CF_ROOMLAMP_BAIK "CF_ROOMLAMP_BAIK",
+CF_ROOMLAMP_TIDAKBAIK "CF_ROOMLAMP_TIDAKBAIK",
+CF_COMPUTER_BAIK "CF_COMPUTER_BAIK", 
+CF_COMPUTER_TIDAKBAIK "CF_COMPUTER_TIDAKBAIK",
+CF_LASERPOINT_BAIK "CF_LASERPOINT_BAIK",
+CF_LASERPOINT_TIDAKBAIK "CF_LASERPOINT_TIDAKBAIK",
+CF_LCD_BAIK "CF_LCD_BAIK",
+CF_LCD_TIDAKBAIK "CF_LCD_TIDAKBAIK",
+CF_PASYSTEM_BAIK "CF_PASYSTEM_BAIK",
+CF_PASYSTEM_TIDAKBAIK "CF_PASYSTEM_TIDAKBAIK",
+URUSETIA1 "URUSETIA1",
+URUSETIA2 "URUSETIA2"
 FROM
 (  
     SELECT TH_TRAINING_TITLE,TH_TRAINING_VENUE,TO_CHAR(TH_DATE_FROM,'dd/mm/yyyy')||' hingga '||TO_CHAR(TH_DATE_TO,'dd/mm/yyyy') TARIKH,
     TH_DATE_FROM,TH_REF_ID,
-    CASE WHEN (TO_CHAR(TH_DATE_FROM, 'YYYY') < 2016)
+    CASE WHEN (TO_CHAR(TH_DATE_FROM, 'YYYY')::NUMERIC < 2016)
     THEN ((
             SELECT COUNT(STH_STAFF_ID) AS STAFF_ID
             FROM TRAINING_HEAD, STAFF_TRAINING_HEAD
@@ -363,22 +408,99 @@ LEFT JOIN
     TSR_OVERALL_REPORT
     FROM TRAINING_SECRETARIAT_REPORT
     WHERE TSR_REFID = $P{REFID}
-) ON TH_REF_ID = TSR_REFID]]>
+) B
+ON TH_REF_ID = TSR_REFID]]>
 	</queryString>
 	<field name="TH_TRAINING_TITLE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_TITLE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TH_TRAINING_VENUE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_VENUE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TARIKH" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TARIKH"/>
 	</field>
 	<field name="TH_DATE_FROM" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="TH_DATE_FROM"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 	</field>
 	<field name="TH_REF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="TH_REF_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
+	</field>
+	<field name="TSR_PARTICIPANT_DISCIPLINE" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_PARTICIPANT_DISCIPLINE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_PARTICIPANT_TIME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_PARTICIPANT_TIME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_PARTICIPANT_REMARK" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_PARTICIPANT_REMARK"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_CAFE_NAME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_NAME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_CAFE_TIME" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_TIME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_CAFE_QUALITY" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_QUALITY"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_CAFE_REMARK" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_REMARK"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_ROOM_CHAIR" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_CHAIR"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_ROOM_DESK" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_DESK"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_ROOM_AIRCOND" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_AIRCOND"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_ROOM_LAMP" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_LAMP"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_ROOM_REMARK" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_REMARK"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_EQUIPMENT_COMPUTER" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_COMPUTER"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_EQUIPMENT_LASERPOINTER" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_LASERPOINTER"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_EQUIPMENT_LCD" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_LCD"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_EQUIPMENT_PASYSTEM" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_PASYSTEM"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_EQUIPMENT_REMARK" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_REMARK"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
+	</field>
+	<field name="TSR_OVERALL_REPORT" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="TSR_OVERALL_REPORT"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="training_secretariat_report"/>
 	</field>
 	<field name="KEHADIRAN" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="KEHADIRAN"/>
@@ -461,60 +583,6 @@ LEFT JOIN
 	<field name="URUSETIA2" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="URUSETIA2"/>
 	</field>
-	<field name="TSR_PARTICIPANT_DISCIPLINE" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_PARTICIPANT_DISCIPLINE"/>
-	</field>
-	<field name="TSR_PARTICIPANT_TIME" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_PARTICIPANT_TIME"/>
-	</field>
-	<field name="TSR_PARTICIPANT_REMARK" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_PARTICIPANT_REMARK"/>
-	</field>
-	<field name="TSR_CAFE_NAME" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_NAME"/>
-	</field>
-	<field name="TSR_CAFE_TIME" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_TIME"/>
-	</field>
-	<field name="TSR_CAFE_QUALITY" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_QUALITY"/>
-	</field>
-	<field name="TSR_CAFE_REMARK" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_CAFE_REMARK"/>
-	</field>
-	<field name="TSR_ROOM_CHAIR" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_CHAIR"/>
-	</field>
-	<field name="TSR_ROOM_DESK" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_DESK"/>
-	</field>
-	<field name="TSR_ROOM_AIRCOND" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_AIRCOND"/>
-	</field>
-	<field name="TSR_ROOM_LAMP" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_LAMP"/>
-	</field>
-	<field name="TSR_ROOM_REMARK" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_ROOM_REMARK"/>
-	</field>
-	<field name="TSR_EQUIPMENT_COMPUTER" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_COMPUTER"/>
-	</field>
-	<field name="TSR_EQUIPMENT_LASERPOINTER" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_LASERPOINTER"/>
-	</field>
-	<field name="TSR_EQUIPMENT_LCD" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_LCD"/>
-	</field>
-	<field name="TSR_EQUIPMENT_PASYSTEM" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_PASYSTEM"/>
-	</field>
-	<field name="TSR_EQUIPMENT_REMARK" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_EQUIPMENT_REMARK"/>
-	</field>
-	<field name="TSR_OVERALL_REPORT" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="TSR_OVERALL_REPORT"/>
-	</field>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -524,7 +592,7 @@ LEFT JOIN
 				<reportElement x="10" y="0" width="480" height="60" uuid="8ff4d3c4-01f8-4c2a-bb96-ab7e7375f7c2"/>
 				<image>
 					<reportElement x="0" y="0" width="110" height="60" uuid="0bc1de83-c43f-4d16-8642-1afabec14639"/>
-					<imageExpression><![CDATA["/TrainingAppl/images/logo_upsi.png"]]></imageExpression>
+					<imageExpression><![CDATA["repo:/Reports/Images/Logo_UPSI_2018_Confirm_With_Stroke.png"]]></imageExpression>
 				</image>
 				<staticText>
 					<reportElement x="170" y="13" width="278" height="22" uuid="37661574-103d-41b0-923b-afa230cebf09"/>

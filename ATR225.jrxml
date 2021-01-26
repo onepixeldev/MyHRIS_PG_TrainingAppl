@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR225" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="762" leftMargin="40" rightMargin="40" topMargin="20" bottomMargin="20" uuid="25569710-2bab-4992-91c1-132d1c17a2a0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -98,18 +98,24 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="92bdd1bd-ff26-46d0-b585-b8580f34d034">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT AGE, TOTAL_STAFF, BIL_HADIR, PERATUS_HADIR, BIL_TIDAK_HADIR, PERATUS_TIDAK_HADIR
+			<![CDATA[SELECT 
+AGE "AGE", 
+TOTAL_STAFF::NUMERIC "TOTAL_STAFF", 
+BIL_HADIR::NUMERIC "BIL_HADIR", 
+PERATUS_HADIR::NUMERIC "PERATUS_HADIR", 
+BIL_TIDAK_HADIR::NUMERIC "BIL_TIDAK_HADIR", 
+PERATUS_TIDAK_HADIR::NUMERIC "PERATUS_TIDAK_HADIR"
 FROM
 (
-    SELECT AGE, TOTAL_STAFF, BIL_HADIR,
-    COALESCE(ROUND((NULLIF(BIL_HADIR,0) / NULLIF(TOTAL_STAFF,0)) * 100,0),0) PERATUS_HADIR,
-    (TOTAL_STAFF - BIL_HADIR) BIL_TIDAK_HADIR,
-    COALESCE(ROUND((NULLIF((TOTAL_STAFF - BIL_HADIR),0) / NULLIF(TOTAL_STAFF,0)) * 100,0),0) PERATUS_TIDAK_HADIR
+    SELECT AGE, TOTAL_STAFF::NUMERIC, BIL_HADIR::NUMERIC,
+    COALESCE(ROUND((NULLIF(BIL_HADIR::NUMERIC,0) / NULLIF(TOTAL_STAFF::NUMERIC,0)) * 100,0),0) PERATUS_HADIR,
+    (TOTAL_STAFF::NUMERIC - BIL_HADIR::NUMERIC) BIL_TIDAK_HADIR,
+    COALESCE(ROUND((NULLIF((TOTAL_STAFF::NUMERIC - BIL_HADIR::NUMERIC),0) / NULLIF(TOTAL_STAFF::NUMERIC,0)) * 100,0),0) PERATUS_TIDAK_HADIR
     FROM
     (
         SELECT '18 - 19' AGE, COALESCE(COUNT(1), 0) TOTAL_STAFF
@@ -117,7 +123,7 @@ FROM
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -125,10 +131,10 @@ FROM
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) Z
     JOIN
     (
         SELECT '18 - 19' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -148,11 +154,12 @@ FROM
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) N
+    ON AGE2 = AGE
+) A
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -166,7 +173,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -174,10 +181,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) A1
     JOIN
     (
         SELECT '20 - 24' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -197,10 +204,11 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) O
+    ON AGE2 = AGE
 )
 UNION
 (
@@ -215,7 +223,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -223,10 +231,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) B
     JOIN
     (
         SELECT '25 - 29' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -246,10 +254,11 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) P
+    ON AGE2 = AGE
 )
 UNION
 (
@@ -264,7 +273,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -272,10 +281,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) C1
     JOIN
     (
         SELECT '30 - 34' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -295,11 +304,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) Q
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -313,7 +323,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -321,10 +331,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) D
     JOIN
     (
         SELECT '35 - 39' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -344,11 +354,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) R
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -362,7 +373,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -370,10 +381,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) E
     JOIN
     (
         SELECT '40 - 44' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -393,11 +404,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) S
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -411,7 +423,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -419,10 +431,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) F
     JOIN
     (
         SELECT '45 - 49' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -442,11 +454,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) T
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -460,7 +473,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -468,10 +481,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) G
     JOIN
     (
         SELECT '50 - 54' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -491,11 +504,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) U
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -509,7 +523,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -517,10 +531,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) H
     JOIN
     (
         SELECT '55 - 59' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -540,11 +554,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) V
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -558,7 +573,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -566,10 +581,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) I
     JOIN
     (
         SELECT '60 - 64' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -589,11 +604,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) W
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -607,7 +623,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -615,10 +631,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) J
     JOIN
     (
         SELECT '65 - 69' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -638,11 +654,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) K
+	ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -656,7 +673,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -664,10 +681,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) K1
     JOIN
     (
         SELECT '70 - 74' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -687,11 +704,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) X
+    ON AGE2 = AGE
+) 
 UNION
 (
     SELECT AGE, TOTAL_STAFF, BIL_HADIR,
@@ -705,7 +723,7 @@ UNION
         WHERE SM_STAFF_STATUS = SS_STATUS_CODE
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79'
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79'
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -713,10 +731,10 @@ UNION
         (SELECT TH_DATE_FROM
         FROM TRAINING_HEAD
         WHERE TH_STATUS = 'APPROVE'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
+        AND TO_CHAR(TH_DATE_FROM,'yyyy')= '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
         AND TH_TYPE = 'S'))
-    )
+    ) L
     JOIN
     (
         SELECT '75 - 79' AGE2, COUNT(STH_STAFF_ID) AS BIL_HADIR
@@ -736,11 +754,12 @@ UNION
             )
           )
         )
-        AND STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79'
-        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
-        AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-    ) ON AGE2 = AGE
-)]]>
+        AND STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79'
+        AND TO_CHAR(TH_DATE_FROM,'yyyy') =  '2016'
+        AND TO_CHAR(TH_DATE_FROM,'mm')=  '01'
+    ) Y
+    ON AGE2 = AGE
+) ]]>
 		</queryString>
 		<field name="AGE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="AGE"/>
@@ -762,17 +781,17 @@ UNION
 		</field>
 	</subDataset>
 	<subDataset name="BIG_TOTAL" uuid="79d12585-6f0e-43be-b20a-af4e772b6c02">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
-JUM_STAFF,
-JUM_BIL_HADIR,
-COALESCE(ROUND((NULLIF(JUM_BIL_HADIR,0) / NULLIF(JUM_STAFF,0)) * 100,0),0) JUM_PERATUS_HADIR,
-(JUM_STAFF - JUM_BIL_HADIR) JUM_BIL_TIDAK_HADIR,
-COALESCE(ROUND((NULLIF((JUM_STAFF - JUM_BIL_HADIR),0) / NULLIF(JUM_STAFF,0)) * 100,0),0) JUM_PERATUS_TIDAK_HADIR
+JUM_STAFF::NUMERIC "JUM_STAFF",
+JUM_BIL_HADIR::NUMERIC "JUM_BIL_HADIR",
+COALESCE(ROUND((NULLIF(JUM_BIL_HADIR::NUMERIC,0) / NULLIF(JUM_STAFF::NUMERIC,0)) * 100,0),0) "JUM_PERATUS_HADIR",
+(JUM_STAFF::NUMERIC - JUM_BIL_HADIR::NUMERIC) "JUM_BIL_TIDAK_HADIR",
+COALESCE(ROUND((NULLIF((JUM_STAFF::NUMERIC - JUM_BIL_HADIR::NUMERIC),0) / NULLIF(JUM_STAFF::NUMERIC,0)) * 100,0),0) "JUM_PERATUS_TIDAK_HADIR"
 FROM
 (
     SELECT 1 JOINROW, COALESCE(COUNT(1), 0) JUM_STAFF
@@ -780,19 +799,19 @@ FROM
     WHERE SM_STAFF_STATUS = SS_STATUS_CODE
     AND SS_STATUS_CODE = '01'
     AND SM_STAFF_TYPE = 'STAFF'
-    AND (STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
-    OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79')
+    AND (STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
+    OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79')
     AND SM_STAFF_ID IN 
     (SELECT SS_STAFF_ID
     FROM STAFF_SERVICE
@@ -803,7 +822,7 @@ FROM
     AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
     AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
     AND TH_TYPE = 'S'))
-)
+) A
 JOIN
 (
 SELECT 1 JOINROW2, COUNT(STH_STAFF_ID) AS JUM_BIL_HADIR
@@ -823,22 +842,23 @@ AND (TO_CHAR(TH_DATE_FROM,'yyyy') < '2016'
     )
   )
 )
-AND (STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
-OR STAFF.GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79')
+AND (STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '18' AND '19'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '20' AND '24'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '25' AND '29'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '30' AND '34'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '35' AND '39'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '40' AND '44'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '45' AND '49'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '50' AND '54'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '55' AND '59'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '60' AND '64'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '65' AND '69'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '70' AND '74'
+OR STAFF_GET_STAFF_AGE(SM_STAFF_ID) BETWEEN '75' AND '79')
 AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
 AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
-) ON JOINROW2 = JOINROW]]>
+) B
+ON JOINROW2 = JOINROW]]>
 		</queryString>
 		<field name="JUM_STAFF" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="JUM_STAFF"/>
@@ -857,12 +877,12 @@ AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
 		</field>
 	</subDataset>
 	<subDataset name="LOKASI" uuid="51c5121d-9386-49fa-a379-4be31b6ba9e5">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT TH_TRAINING_VENUE
+			<![CDATA[SELECT TH_TRAINING_VENUE "TH_TRAINING_VENUE"
 FROM TRAINING_HEAD
 WHERE TH_STATUS = 'APPROVE'
 AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
@@ -871,18 +891,34 @@ AND TH_TYPE = 'S']]>
 		</queryString>
 		<field name="TH_TRAINING_VENUE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="TH_TRAINING_VENUE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="training_head"/>
 		</field>
 	</subDataset>
 	<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE,
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE",
 CASE 
-WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY') IS NULL
+WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM'), 'MM')  IS NULL
 THEN 'Semua'
-ELSE TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY')
-END MONTH
-FROM DUAL]]>
+ELSE 
+(
+CASE TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'), 'MM') 
+WHEN '01' THEN 'Januari'
+WHEN '02' THEN 'Februari'
+WHEN '03' THEN 'Mac'
+WHEN '04' THEN 'April'
+WHEN '05' THEN 'Mei'
+WHEN '06' THEN 'Jun'
+WHEN '07' THEN 'Julai'
+WHEN '08' THEN 'Ogos'
+WHEN '09' THEN 'September'
+WHEN '10' THEN 'Oktober'
+WHEN '11' THEN 'November'
+WHEN '12' THEN 'Disember'
+END 
+)
+END "MONTH"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

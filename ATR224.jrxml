@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR224" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="762" leftMargin="40" rightMargin="40" topMargin="20" bottomMargin="20" uuid="25569710-2bab-4992-91c1-132d1c17a2a0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -89,15 +89,20 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="92bdd1bd-ff26-46d0-b585-b8580f34d034">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT W.*,
-COALESCE(ROUND((NULLIF(BIL_HADIR,0) / NULLIF(TOTAL_STAFF,0)) * 100,0),0) PERATUS_HADIR,
-(TOTAL_STAFF - BIL_HADIR) BIL_TIDAK_HADIR,
-COALESCE(ROUND((NULLIF((TOTAL_STAFF - BIL_HADIR),0) / NULLIF(TOTAL_STAFF,0)) * 100,0),0) PERATUS_TIDAK_HADIR,
+			<![CDATA[SELECT KUMPULAN_PERKHIDMATAN "KUMPULAN_PERKHIDMATAN",
+KUMPULAN_PERKHIDMATAN_DESC "KUMPULAN_PERKHIDMATAN_DESC",
+RANK "RANK",
+GRED "GRED",
+TOTAL_STAFF::NUMERIC "TOTAL_STAFF",
+BIL_HADIR::NUMERIC "BIL_HADIR",
+COALESCE(ROUND((NULLIF(BIL_HADIR::NUMERIC,0) / NULLIF(TOTAL_STAFF::NUMERIC,0)) * 100,0),0) "PERATUS_HADIR",
+(TOTAL_STAFF::NUMERIC - BIL_HADIR::NUMERIC) "BIL_TIDAK_HADIR",
+COALESCE(ROUND((NULLIF((TOTAL_STAFF::NUMERIC - BIL_HADIR::NUMERIC),0) / NULLIF(TOTAL_STAFF::NUMERIC,0)) * 100,0),0) "PERATUS_TIDAK_HADIR",
 (
     SELECT TH_TRAINING_VENUE
     FROM TRAINING_HEAD
@@ -105,7 +110,7 @@ COALESCE(ROUND((NULLIF((TOTAL_STAFF - BIL_HADIR),0) / NULLIF(TOTAL_STAFF,0)) * 1
     AND TO_CHAR(TH_DATE_FROM,'yyyy')= $P{TRAINING_YEAR}
     AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
     AND TH_TYPE = 'S'
-) TEMPAT
+) "TEMPAT"
 FROM
 (
     SELECT Q.*,
@@ -116,7 +121,7 @@ FROM
         AND SS_STATUS_CODE = '01'
         AND SM_STAFF_TYPE = 'STAFF'
         AND SM_JOB_CODE = SS_SERVICE_CODE
-        AND NVL(SS_SERVICE_KUMPP,'Tiada Kumpulan Perkhidmatan') = Q.KUMPULAN_PERKHIDMATAN
+        AND COALESCE(SS_SERVICE_KUMPP,'Tiada Kumpulan Perkhidmatan') = Q.KUMPULAN_PERKHIDMATAN
         AND SM_STAFF_ID IN 
         (SELECT SS_STAFF_ID
         FROM STAFF_SERVICE
@@ -147,57 +152,61 @@ FROM
             )
           )
         )
-        AND NVL(SS_SERVICE_KUMPP,'Tiada Kumpulan Perkhidmatan') = Q.KUMPULAN_PERKHIDMATAN
+        AND COALESCE(SS_SERVICE_KUMPP,'Tiada Kumpulan Perkhidmatan') = Q.KUMPULAN_PERKHIDMATAN
         AND TO_CHAR(TH_DATE_FROM,'yyyy') =  $P{TRAINING_YEAR}
         AND TO_CHAR(TH_DATE_FROM,'mm')=  $P{TRAINING_MONTH}
     ) BIL_HADIR
     FROM
     (
         SELECT 
-        DISTINCT NVL(SS_SERVICE_KUMPP,'Tiada Kumpulan Perkhidmatan') KUMPULAN_PERKHIDMATAN,
+        DISTINCT COALESCE(SS_SERVICE_KUMPP,'Tiada Kumpulan Perkhidmatan') KUMPULAN_PERKHIDMATAN,
         (
             SELECT SOG_GROUP_DESC
             FROM SERVICE_ORG_GROUP
             WHERE SOG_GROUP_CODE = SS_SERVICE_KUMPP
         ) KUMPULAN_PERKHIDMATAN_DESC,
-        DECODE(SS_SERVICE_KUMPP, 'JUSA', '1',
-                            'PROF', '2',
-                            'PENGK', '3',
-                            'PM', '4',
-                            'PENK', '5',
-                            'PEN', '6',
-                            'PENS', '7',
-                            'T', '8',
-                            'G', '9',
-                            'PPPS', '91',
-                            'PPLD', '92',
-                            'SS', '93',
-                            'STPK', '94',
-                            'SPP', '95',
-                            'A', '96',
-                            'B', '97',
-                            'C', '98',
-                            'D', '99',
-                            '99')RANK,
-        DECODE(SS_SERVICE_KUMPP, 'JUSA', 'VU',
-                            'PROF', 'VK',
-                            'PENGK', 'VK',
-                            'PM', 'DS',
-                            'PENK', 'DS',
-                            'PEN', 'DS',
-                            'PENS', 'DS',
-                            'T', 'DA',
-                            'G', 'DG',
-                            'PPPS', 'DG',
-                            'PPLD', 'DGA',
-                            'SS', 'Tiada Gred',
-                            'STPK', 'Tiada Gred',
-                            'SPP', 'Tiada Gred',
-                            'A', '41-54',
-                            'B', '27-40',
-                            'C', '17-26',
-                            'D', '1-16',
-                            'Tiada Gred')GRED
+        CASE SS_SERVICE_KUMPP 
+        WHEN 'JUSA' THEN '1'
+        WHEN 'PROF' THEN '2'
+        WHEN 'PENGK' THEN '3'
+        WHEN 'PM' THEN '4'
+        WHEN 'PENK' THEN '5'
+        WHEN 'PEN' THEN '6'
+        WHEN 'PENS' THEN '7'
+        WHEN 'T' THEN '8'
+        WHEN 'G' THEN '9'
+        WHEN 'PPPS' THEN '91'
+        WHEN 'PPLD' THEN '92'
+        WHEN 'SS' THEN '93'
+        WHEN 'STPK' THEN '94'
+        WHEN 'SPP' THEN '95'
+        WHEN 'A' THEN '96'
+        WHEN 'B' THEN '97'
+        WHEN 'C' THEN '98'
+        WHEN 'D' THEN '99'
+        ELSE '99'
+        END AS RANK,
+        CASE SS_SERVICE_KUMPP 
+        WHEN 'JUSA' THEN 'VU'
+        WHEN 'PROF' THEN 'VK'
+        WHEN 'PENGK' THEN 'VK'
+        WHEN 'PM' THEN 'DS'
+        WHEN 'PENK' THEN 'DS'
+        WHEN 'PEN' THEN 'DS'
+        WHEN 'PENS' THEN 'DS'
+        WHEN 'T' THEN 'DA'
+        WHEN 'G' THEN 'DG'
+        WHEN 'PPPS' THEN 'DG'
+        WHEN 'PPLD' THEN 'DGA'
+        WHEN 'SS' THEN 'Tiada Gred'
+        WHEN 'STPK' THEN 'Tiada Gred'
+        WHEN 'SPP' THEN 'Tiada Gred'
+        WHEN 'A' THEN '41-54'
+        WHEN 'B' THEN '27-40'
+        WHEN 'C' THEN '17-26'
+        WHEN 'D' THEN '1-16'
+        ELSE 'Tiada Gred'
+        END AS GRED                  
         FROM SERVICE_SCHEME,STAFF_MAIN
         WHERE SM_JOB_CODE = SS_SERVICE_CODE
         ORDER BY RANK
@@ -239,17 +248,17 @@ FROM
 		</variable>
 	</subDataset>
 	<subDataset name="BIG_TOTAL" uuid="79d12585-6f0e-43be-b20a-af4e772b6c02">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
-SUM(TOTAL_STAFF) JUM_STAFF,
-SUM(BIL_HADIR) JUM_HADIR,
-ROUND((NULLIF(SUM(BIL_HADIR),0) / NULLIF(SUM(TOTAL_STAFF),0)) * 100,0) JUM_PERATUS_HADIR,
-(SUM(TOTAL_STAFF) - SUM(BIL_HADIR)) JUM_X_HADIR,
-ROUND((NULLIF((SUM(TOTAL_STAFF) - SUM(BIL_HADIR)),0) / NULLIF(SUM(TOTAL_STAFF),0)) * 100,0) JUM_PERATUS_X_HADIR 
+SUM(TOTAL_STAFF::NUMERIC) "JUM_STAFF",
+SUM(BIL_HADIR::NUMERIC) "JUM_HADIR",
+ROUND((NULLIF(SUM(BIL_HADIR::NUMERIC),0) / NULLIF(SUM(TOTAL_STAFF::NUMERIC),0)) * 100,0) "JUM_PERATUS_HADIR",
+(SUM(TOTAL_STAFF::NUMERIC) - SUM(BIL_HADIR::NUMERIC)) "JUM_X_HADIR",
+ROUND((NULLIF((SUM(TOTAL_STAFF::NUMERIC) - SUM(BIL_HADIR::NUMERIC)),0) / NULLIF(SUM(TOTAL_STAFF::NUMERIC),0)) * 100,0) "JUM_PERATUS_X_HADIR" 
 FROM
 (
     SELECT W.*,
@@ -339,13 +348,28 @@ FROM
 	<parameter name="TRAINING_MONTH" class="java.lang.String"/>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE,
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE",
 CASE 
-WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY') IS NULL
+WHEN TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM'), 'MM')  IS NULL
 THEN 'Semua'
-ELSE TO_CHAR(TO_DATE($P{TRAINING_MONTH},'MM'), 'Month', 'NLS_DATE_LANGUAGE = MALAY')
-END MONTH
-FROM DUAL]]>
+ELSE 
+(
+CASE TO_CHAR(TO_DATE($P{TRAINING_MONTH}, 'MM/YYYY'), 'MM') 
+WHEN '01' THEN 'Januari'
+WHEN '02' THEN 'Februari'
+WHEN '03' THEN 'Mac'
+WHEN '04' THEN 'April'
+WHEN '05' THEN 'Mei'
+WHEN '06' THEN 'Jun'
+WHEN '07' THEN 'Julai'
+WHEN '08' THEN 'Ogos'
+WHEN '09' THEN 'September'
+WHEN '10' THEN 'Oktober'
+WHEN '11' THEN 'November'
+WHEN '12' THEN 'Disember'
+END 
+)
+END "MONTH"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

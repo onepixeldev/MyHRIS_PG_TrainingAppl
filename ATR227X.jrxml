@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR227X" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="822" leftMargin="10" rightMargin="10" topMargin="20" bottomMargin="20" uuid="ce73c70d-56ae-4420-b2e0-c3d198d97e9a">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -67,38 +67,39 @@
 		</box>
 	</style>
 	<subDataset name="MAIN" uuid="bffffaef-0180-40b2-b562-c7ff8e2b1cc0">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="DEPARTMENT" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT SM_DEPT_CODE
+			<![CDATA[SELECT SM_DEPT_CODE "SM_DEPT_CODE"
 FROM STAFF_MAIN,SERVICE_SCHEME,STAFF_STATUS
 WHERE SM_JOB_CODE = SS_SERVICE_CODE 
 AND SM_STAFF_STATUS = SS_STATUS_CODE
 AND SM_STAFF_STATUS = '01'
 AND SM_STAFF_TYPE = 'STAFF'
-AND ($P{DEPARTMENT} IS NULL OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
+AND (($P{DEPARTMENT} IS NULL OR $P{DEPARTMENT} = '') OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
 --GROUP BY SM_DEPT_CODE
 ORDER BY SM_DEPT_CODE]]>
 		</queryString>
 		<field name="SM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 	</subDataset>
 	<subDataset name="MAIN2" uuid="2262d3fb-1554-4aa5-90c3-8afe01e75de2">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="DEPARTMENT" class="java.lang.String"/>
 		<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT SM_DEPT_CODE,
-SM_STAFF_NAME,
-SM_STAFF_ID,
-SS_SERVICE_DESC,
+			<![CDATA[SELECT SM_DEPT_CODE "SM_DEPT_CODE",
+SM_STAFF_NAME "SM_STAFF_NAME",
+SM_STAFF_ID "SM_STAFF_ID",
+SS_SERVICE_DESC "SS_SERVICE_DESC",
 CASE WHEN 
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -120,10 +121,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '01'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS JAN,
+END AS "JAN",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -145,10 +146,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '02'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS FEB,
+END AS "FEB",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -170,10 +171,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '03'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS MAC,
+END AS "MAC",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -195,10 +196,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '04'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS APRIL,
+END AS "APRIL",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -220,10 +221,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '05'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS MEI,
+END AS "MEI",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -245,10 +246,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '06'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS JUN,
+END AS "JUN",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -270,10 +271,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '07'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS JULAI,
+END AS "JULAI",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -295,10 +296,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '08'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS OGOS,
+END AS "OGOS",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -320,10 +321,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '09'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS SEPT,
+END AS "SEPT",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -345,10 +346,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '10'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS OKT,
+END AS "OKT",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -370,10 +371,10 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '11'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS NOV,
+END AS "NOV",
 CASE WHEN
 (
-    SELECT COUNT(STH_STAFF_ID) AS STH_TOTAL
+    SELECT COUNT(STH_STAFF_ID)::NUMERIC AS STH_TOTAL
     FROM TRAINING_HEAD, STAFF_TRAINING_HEAD, STAFF_MAIN
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND SM_STAFF_ID = STH_STAFF_ID 
@@ -395,7 +396,7 @@ CASE WHEN
     AND TO_CHAR(TH_DATE_FROM,'mm')= '12'
 ) > 0 THEN '/'
 ELSE 'X'
-END AS DIS
+END AS "DIS"
 FROM STAFF_MAIN SM,SERVICE_SCHEME,STAFF_STATUS
 WHERE SM_JOB_CODE = SS_SERVICE_CODE 
 AND SM_STAFF_STATUS = SS_STATUS_CODE
@@ -406,15 +407,19 @@ ORDER BY SM_DEPT_CODE,SM_STAFF_NAME]]>
 		</queryString>
 		<field name="SM_DEPT_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SS_SERVICE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="JAN" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="JAN"/>
@@ -456,19 +461,20 @@ ORDER BY SM_DEPT_CODE,SM_STAFF_NAME]]>
 	<parameter name="DEPARTMENT" class="java.lang.String"/>
 	<parameter name="TRAINING_YEAR" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[SELECT SM_DEPT_CODE,
-TO_CHAR(SYSDATE, 'DD-MON-YY HH:MI PM') CURR_DATE
+		<![CDATA[SELECT SM_DEPT_CODE "SM_DEPT_CODE",
+TO_CHAR(NOW(), 'DD-MON-YY HH:MI PM') "CURR_DATE"
 FROM STAFF_MAIN,SERVICE_SCHEME,STAFF_STATUS
 WHERE SM_JOB_CODE = SS_SERVICE_CODE 
 AND SM_STAFF_STATUS = SS_STATUS_CODE
 AND SM_STAFF_STATUS = '01'
 AND SM_STAFF_TYPE = 'STAFF'
-AND ($P{DEPARTMENT} IS NULL OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
+AND (($P{DEPARTMENT} IS NULL OR $P{DEPARTMENT} = '') OR ($P{DEPARTMENT} IS NOT NULL AND SM_DEPT_CODE = $P{DEPARTMENT}))
 GROUP BY SM_DEPT_CODE
 ORDER BY SM_DEPT_CODE]]>
 	</queryString>
 	<field name="SM_DEPT_CODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_DEPT_CODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

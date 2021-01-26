@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR119" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="b15dee52-2174-445c-930c-1b705eaed25c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR119_files/main_jrxml"/>
@@ -89,18 +89,18 @@
 		</box>
 	</style>
 	<subDataset name="MAIN_LIST" uuid="f0f95f74-cd71-4024-867e-9f9ccb449340">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFFID2" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT SM_STAFF_ID,
-SM_STAFF_NAME,
-SM_DEPT_DESC,
-SS_SERVICE_DESC,
-SS_JOB_START_DATE,
-BH_DATE,
-TH_DATE2,
-TH_DATE3
+			<![CDATA[SELECT SM_STAFF_ID "SM_STAFF_ID",
+SM_STAFF_NAME "SM_STAFF_NAME",
+SM_DEPT_DESC "SM_DEPT_DESC",
+SS_SERVICE_DESC "SS_SERVICE_DESC",
+SS_JOB_START_DATE "SS_JOB_START_DATE",
+BH_DATE "BH_DATE",
+TH_DATE2 "TH_DATE2",
+TH_DATE3 "TH_DATE3"
 FROM
 (
     SELECT SM_STAFF_ID,TM_TITLE_DESC||' '||SM_STAFF_NAME SM_STAFF_NAME,SM_DEPT_CODE,
@@ -112,15 +112,15 @@ FROM
     AND SM_JOB_CODE = SS_SERVICE_CODE
     AND SS_STAFF_ID = SM_STAFF_ID
     AND SS_STATUS_STS = 'ACTIVE'
-    AND NVL(SS_CONFIRM_STATUS,'07') <> '01'
+    AND COALESCE(SS_CONFIRM_STATUS,'07') <> '01'
     AND SS_JOB_STATUS = '01'
     AND SS_ACADEMIC = 'Y'
-    AND ($P{STAFFID2} IS NULL OR SM_STAFF_ID = $P{STAFFID2})  
+    AND (($P{STAFFID2} IS NULL OR $P{STAFFID2} = '') OR SM_STAFF_ID = $P{STAFFID2})  
     ORDER BY SM_STAFF_ID
-)
+) AS A
 LEFT JOIN
 (
-    SELECT SB_STAFF_ID, LISTAGG(BH_DATE, CHR(10)||CHR(10)) WITHIN GROUP (ORDER BY BH_DATE_FROM DESC) AS BH_DATE
+    SELECT SB_STAFF_ID, STRING_AGG(BH_DATE, CHR(10)||CHR(10) ORDER BY BH_DATE_FROM DESC) AS BH_DATE
     FROM 
     (
         SELECT DISTINCT SB_STAFF_ID,BH_REF_ID,BH_DATE,BH_DATE_FROM
@@ -162,12 +162,14 @@ LEFT JOIN
             AND (UPPER(TH_TRAINING_TITLE) LIKE UPPER('%BITARA LIVING%')
             OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('BITARA')
             OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('%BITARA EKSEKUTIF%'))
-        )
-    ) GROUP BY SB_STAFF_ID
-) ON SB_STAFF_ID = SM_STAFF_ID
+        ) AS B
+    ) AS C
+    GROUP BY SB_STAFF_ID
+) AS D
+ON SB_STAFF_ID = SM_STAFF_ID
 LEFT JOIN
 (
-    SELECT STH_STAFF_ID2, LISTAGG(TH_DATE2, ',') WITHIN GROUP (ORDER BY TH_DATE_FROM) AS TH_DATE2
+    SELECT STH_STAFF_ID2, STRING_AGG(TH_DATE2, ',' ORDER BY TH_DATE_FROM) AS TH_DATE2
     FROM 
     (   
         SELECT DISTINCT STH_STAFF_ID STH_STAFF_ID2,TH_REF_ID,TH_TRAINING_TITLE,TH_DATE TH_DATE2,TH_DATE_FROM
@@ -195,14 +197,15 @@ LEFT JOIN
             AND STH_STAFF_ID = STD_STAFF_ID
             AND STD_ATTEND IN ('Y','A')
             AND UPPER(TH_TRAINING_TITLE) LIKE UPPER('%INDUKSI%KHUSUS%')
-        )
-    )
+        ) AS E
+    ) AS F
     GROUP BY STH_STAFF_ID2
-) ON STH_STAFF_ID2 = SM_STAFF_ID
+) AS G
+ON STH_STAFF_ID2 = SM_STAFF_ID
 LEFT JOIN
 (
     SELECT STH_STAFF_ID3,
-    LISTAGG(TH_DATE3, CHR(10)||CHR(10)) WITHIN GROUP (ORDER BY TH_DATE_FROM) AS TH_DATE3
+    STRING_AGG(TH_DATE3, CHR(10)||CHR(10) ORDER BY TH_DATE_FROM) AS TH_DATE3
     FROM
     (
         SELECT STH_STAFF_ID STH_STAFF_ID3,TH_REF_ID,TH_DATE,MPE,TH_DATE_FROM,TH_DATE||CHR(10)||MPE TH_DATE3
@@ -246,22 +249,25 @@ LEFT JOIN
                 AND STD_ATTEND IN ('Y','A')
                 AND (UPPER(TH_TRAINING_TITLE) LIKE UPPER('%LET%SPEAK%ENGLISH%')
                 OR UPPER(TH_TRAINING_TITLE) LIKE UPPER('%ENGLISH%FOR%WORK%'))
-            )
-        ) 
+            ) AS H
+        ) AS I
         LEFT JOIN
         (
             SELECT TO_CHAR(STE_MPE_DATE,'dd/mm/yyyy')||CHR(10)||'( '||STE_STATUS||' )'MPE, STH_STAFF_ID STH_STAFF_ID4, STH_TRAINING_REFID
             FROM STAFF_TRAINING_HEAD,STAFF_TRAINING_EXAM
             WHERE STH_STAFF_ID = STE_STAFF_ID
             AND STH_TRAINING_REFID = STE_REF_ID
-        ) ON STH_TRAINING_REFID = TH_REF_ID AND STH_STAFF_ID4 = STH_STAFF_ID
-    )
+        ) AS J
+        ON STH_TRAINING_REFID = TH_REF_ID AND STH_STAFF_ID4 = STH_STAFF_ID
+    ) AS K
     GROUP BY STH_STAFF_ID3
-) ON STH_STAFF_ID3 = SM_STAFF_ID
+) AS L
+ON STH_STAFF_ID3 = SM_STAFF_ID
 ORDER BY SM_STAFF_ID]]>
 		</queryString>
 		<field name="SM_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 		</field>
 		<field name="SM_STAFF_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
@@ -271,6 +277,7 @@ ORDER BY SM_STAFF_ID]]>
 		</field>
 		<field name="SS_SERVICE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_SERVICE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 		</field>
 		<field name="SS_JOB_START_DATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SS_JOB_START_DATE"/>
@@ -286,11 +293,15 @@ ORDER BY SM_STAFF_ID]]>
 		</field>
 	</subDataset>
 	<subDataset name="DT1" uuid="f86e4e7d-b79e-456a-92a8-f1caa215582e">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFFID2" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT STH_STAFF_ID,TH_REF_ID,TH_DATE,TH_DATE_FROM,MPE
+			<![CDATA[SELECT STH_STAFF_ID "STH_STAFF_ID",
+TH_REF_ID "TH_REF_ID",
+TH_DATE "TH_DATE",
+TH_DATE_FROM "TH_DATE_FROM",
+MPE "MPE"
 FROM
 (
     SELECT STH_STAFF_ID,TH_REF_ID,TH_TRAINING_TITLE||' ('||
@@ -300,7 +311,7 @@ FROM
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND TH_STATUS='APPROVE'
     AND STH_STATUS='APPROVE'
-    AND NVL('-',TO_CHAR(TH_DATE_FROM,'yyyy')) < '2016'
+    AND COALESCE('-',TO_CHAR(TH_DATE_FROM,'yyyy')) < '2016'
     AND (UPPER(TH_TRAINING_TITLE) LIKE UPPER('%INDUKSI%UMUM%')
     OR TH_TYPE = 'Q')
     AND STH_STAFF_ID = STE_STAFF_ID
@@ -313,7 +324,7 @@ FROM
     WHERE TH_REF_ID = STH_TRAINING_REFID
     AND TH_STATUS='APPROVE'
     AND STH_STATUS='APPROVE'
-    AND NVL('-',TO_CHAR(TH_DATE_FROM,'yyyy')) >= '2016'
+    AND COALESCE('-',TO_CHAR(TH_DATE_FROM,'yyyy')) >= '2016'
     AND STH_TRAINING_REFID = STD_TRAINING_REFID
     AND STH_STAFF_ID = STD_STAFF_ID
     AND STD_ATTEND IN ('Y','A')
@@ -321,7 +332,7 @@ FROM
     OR TH_TYPE = 'Q')
     AND STH_STAFF_ID = STE_STAFF_ID
     AND STH_TRAINING_REFID = STE_REF_ID
-)
+) AS A
 WHERE STH_STAFF_ID = $P{STAFFID2}  
 ORDER BY TH_DATE_FROM]]>
 		</queryString>
@@ -342,11 +353,17 @@ ORDER BY TH_DATE_FROM]]>
 		</field>
 	</subDataset>
 	<subDataset name="DT2" uuid="fd1ee9be-03e0-4bbb-ad6f-5b3d8a449028">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFFID2" class="java.lang.String"/>
 		<queryString>
-			<![CDATA[SELECT STH_STAFF_ID,TH_REF_ID,TH_TRAINING_TITLE,TH_DATE,TH_DATE_FROM,STE_STATUS,MPE
+			<![CDATA[SELECT STH_STAFF_ID "STH_STAFF_ID",
+TH_REF_ID "TH_REF_ID",
+TH_TRAINING_TITLE "TH_TRAINING_TITLE",
+TH_DATE "TH_DATE",
+TH_DATE_FROM "TH_DATE_FROM",
+STE_STATUS "STE_STATUS",
+MPE "MPE"
 FROM
 (
     SELECT STH_STAFF_ID,TH_REF_ID,TH_TRAINING_TITLE,
@@ -359,9 +376,9 @@ FROM
     AND TH_TYPE = TT_CODE
     AND TH_STATUS = 'APPROVE'
     AND STH_STATUS = 'APPROVE'
-    AND NVL('-',TO_CHAR(TH_DATE_FROM,'yyyy')) < '2016'
+    AND COALESCE('-',TO_CHAR(TH_DATE_FROM,'yyyy')) < '2016'
     AND TT_CODE = 'O'
-    AND (TH_DATE_FROM < SYSDATE OR TH_DATE_FROM IS NULL)
+    AND (TH_DATE_FROM < CURRENT_DATE OR TH_DATE_FROM IS NULL)
     AND STE_STAFF_ID = STH_STAFF_ID
     AND STE_REF_ID = STH_TRAINING_REFID
     UNION
@@ -375,15 +392,15 @@ FROM
     AND TH_TYPE = TT_CODE
     AND TH_STATUS = 'APPROVE'
     AND STH_STATUS = 'APPROVE'
-    AND NVL('-',TO_CHAR(TH_DATE_FROM,'yyyy')) >= '2016'
+    AND COALESCE('-',TO_CHAR(TH_DATE_FROM,'yyyy')) >= '2016'
     AND STH_TRAINING_REFID = STD_TRAINING_REFID
     AND STH_STAFF_ID = STD_STAFF_ID
     AND STD_ATTEND IN ('Y','A')
     AND TT_CODE = 'O'
-    AND (TH_DATE_FROM < SYSDATE OR TH_DATE_FROM IS NULL)
+    AND (TH_DATE_FROM < CURRENT_DATE OR TH_DATE_FROM IS NULL)
     AND STE_STAFF_ID = STH_STAFF_ID
     AND STE_REF_ID = STH_TRAINING_REFID
-)
+) AS A
 WHERE STH_STAFF_ID = $P{STAFFID2}  
 ORDER BY TH_DATE_FROM DESC]]>
 		</queryString>
@@ -413,8 +430,11 @@ ORDER BY TH_DATE_FROM DESC]]>
 	<parameter name="STATUS" class="java.lang.String"/>
 	<parameter name="STATUS2" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT * FROM DUAL]]>
+		<![CDATA[SELECT '' "DUMMY"]]>
 	</queryString>
+	<field name="DUMMY" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="DUMMY"/>
+	</field>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -422,7 +442,7 @@ ORDER BY TH_DATE_FROM DESC]]>
 		<band height="116" splitType="Stretch">
 			<image>
 				<reportElement x="10" y="0" width="160" height="70" uuid="bd7bec97-e5b8-436a-a622-b53bd4928a6c"/>
-				<imageExpression><![CDATA["/TrainingAppl/images/logo_upsi.png"]]></imageExpression>
+				<imageExpression><![CDATA["repo:/Reports/Images/Logo_UPSI_2018_Confirm_With_Stroke.png"]]></imageExpression>
 			</image>
 			<frame>
 				<reportElement x="660" y="17" width="142" height="32" uuid="2b2baf9f-e320-4dc4-af4f-ee4431b505ba"/>
