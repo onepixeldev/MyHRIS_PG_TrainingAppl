@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ATR075" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="495" leftMargin="50" rightMargin="50" topMargin="50" bottomMargin="50" uuid="b3ea7ea6-f5f9-4505-8539-28774a83d9e4">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -16,27 +16,29 @@
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR075_files/main_jrxml"/>
 	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR075"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="719"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="271"/>
 	<subDataset name="INDEX_A1" uuid="857849ab-bf2c-4f13-8c0b-b73be260d80a">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFF_ID" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
 CASE
-WHEN CM_YEAR = TO_CHAR(SYSDATE,'yyyy')
+WHEN "CM_YEAR" = TO_CHAR(CURRENT_DATE,'yyyy')
     THEN ' (i) '
     ELSE ' (ii) '
 END AS "CF_INDEX_A",
 CASE
-WHEN CM_YEAR = TO_CHAR(SYSDATE,'yyyy')
-    THEN 'Tahun ini (' ||	CM_YEAR || ') ' || chr(32) ||  chr(32) || chr(32) ||  chr(32) || CS_CTR_CON || ' kali'
-    ELSE 'Tahun Lepas (' ||	CM_YEAR || ') ' || chr(32) ||  chr(32) || chr(32) ||  chr(32) || CS_CTR_CON || ' kali'
+WHEN "CM_YEAR" = TO_CHAR(CURRENT_DATE,'yyyy')
+    THEN 'Tahun ini (' ||	"CM_YEAR" || ') ' || chr(32) ||  chr(32) || chr(32) ||  chr(32) || CS_CTR_CON || ' kali'
+    ELSE 'Tahun Lepas (' ||	"CM_YEAR" || ') ' || chr(32) ||  chr(32) || chr(32) ||  chr(32) || CS_CTR_CON || ' kali'
 END AS "CF_INDEX_A"
 FROM
 (
     SELECT
-    COUNT(SCM_STAFF_ID) CS_CTR_CON,
-    CM_YEAR
+    COUNT("SCM_STAFF_ID") CS_CTR_CON,
+    "CM_YEAR"
     FROM
     (
         SELECT TO_CHAR(CM_DATE_FROM,'yyyy') AS "CM_YEAR",
@@ -52,19 +54,21 @@ FROM
         CM_COUNTRY_DESC AS "CM_COUNTRY_DESC",
         CM_DATE_FROM AS "CM_DATE_FROM",
         CM_DATE_TO AS "CM_DATE_TO"    
-        FROM STAFF_CONFERENCE_MAIN,CONFERENCE_MAIN,STATE_MAIN,COUNTRY_MAIN
-        WHERE CM_REFID = SCM_REFID
-        AND COUNTRY_MAIN.CM_COUNTRY_CODE(+) = CONFERENCE_MAIN.CM_COUNTRY_CODE
-        AND SM_STATE_CODE(+) = CM_STATE
-        AND COALESCE(CONFERENCE_MAIN.CM_COUNTRY_CODE,'MYS') <> 'MYS'
+        FROM STAFF_CONFERENCE_MAIN
+        FULL OUTER JOIN CONFERENCE_MAIN ON CM_REFID = SCM_REFID
+        FULL OUTER JOIN STATE_MAIN ON SM_STATE_CODE = CM_STATE
+        FULL OUTER JOIN COUNTRY_MAIN ON COUNTRY_MAIN.CM_COUNTRY_CODE = CONFERENCE_MAIN.CM_COUNTRY_CODE
+        WHERE COALESCE(CONFERENCE_MAIN.CM_COUNTRY_CODE,'MYS') <> 'MYS'
         AND SCM_STAFF_ID = $P{STAFF_ID}
         AND
-        (TO_CHAR(CM_DATE_FROM,'yyyy') = TO_CHAR(SYSDATE,'yyyy')
-        OR TO_CHAR(CM_DATE_FROM,'yyyy') = TO_CHAR(SYSDATE-365.25,'yyyy'))
-        ORDER BY CM_YEAR DESC,CM_DATE_FROM,CM_DATE_TO
-    )
-    GROUP BY CM_YEAR
-)]]>
+        (TO_CHAR(CM_DATE_FROM,'yyyy') = TO_CHAR(CURRENT_DATE,'yyyy')
+        --OR TO_CHAR(CM_DATE_FROM,'yyyy') = TO_CHAR(CURRENT_DATE-365.25,'yyyy')
+        OR TO_CHAR(CM_DATE_FROM,'yyyy')::NUMERIC = TO_CHAR(CURRENT_DATE,'YYYY')::NUMERIC-1
+        )
+        ORDER BY "CM_YEAR" DESC,CM_DATE_FROM,CM_DATE_TO
+    ) A
+    GROUP BY "CM_YEAR"
+) B]]>
 		</queryString>
 		<field name="CF_INDEX_A" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CF_INDEX_A"/>
@@ -74,55 +78,55 @@ FROM
 		</field>
 	</subDataset>
 	<subDataset name="INDEX_A1_MAIN" uuid="6f6dcf35-179a-438f-9fa1-60fc317ecbaf">
-		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 		<parameter name="STAFF_ID" class="java.lang.String"/>
 		<queryString>
 			<![CDATA[SELECT
 E.*,
 CASE
-WHEN LINE3 IS NOT NULL AND OUTPUT2 IS NOT NULL
-    THEN OUTPUT2 || ', ' || LINE3
-WHEN LINE3 IS NOT NULL AND OUTPUT2 IS NULL  
-    THEN OUTPUT2 || LINE3
+WHEN "LINE3" IS NOT NULL AND "OUTPUT2" IS NOT NULL
+    THEN "OUTPUT2" || ', ' || "LINE3"
+WHEN "LINE3" IS NOT NULL AND "OUTPUT2" IS NULL  
+    THEN "OUTPUT2" || "LINE3"
 END AS "OUTPUT3"    
 FROM
 (
     SELECT
     W.*,
     CASE 
-    WHEN LINE2 IS NOT NULL AND LINE1 IS NOT NULL
-        THEN LINE1 || ', ' || LINE2
-    WHEN LINE2 IS NOT NULL AND LINE1 IS NULL  
-        THEN LINE1 || LINE2
+    WHEN "LINE2" IS NOT NULL AND "LINE1" IS NOT NULL
+        THEN "LINE1" || ', ' || "LINE2"
+    WHEN "LINE2" IS NOT NULL AND "LINE1" IS NULL  
+        THEN "LINE1" || "LINE2"
     END AS "OUTPUT2"    
     FROM
     (
         SELECT
         Q.*,
         CASE
-        WHEN CM_ADDRESS IS NOT NULL
-            THEN CM_ADDRESS
+        WHEN "CM_ADDRESS" IS NOT NULL
+            THEN "CM_ADDRESS"
         END AS "LINE1" ,
         CASE
-        WHEN CM_POSTCODE IS NOT NULL AND CM_CITY IS NOT NULL
-            THEN CM_POSTCODE || ', ' || CM_CITY
-        WHEN CM_POSTCODE IS NOT NULL AND CM_CITY IS NULL
-            THEN CM_POSTCODE   
-        WHEN CM_POSTCODE IS NULL AND CM_CITY IS NOT NULL
-            THEN CM_CITY
+        WHEN "CM_POSTCODE" IS NOT NULL AND "CM_CITY" IS NOT NULL
+            THEN "CM_POSTCODE" || ', ' || "CM_CITY"
+        WHEN "CM_POSTCODE" IS NOT NULL AND "CM_CITY" IS NULL
+            THEN "CM_POSTCODE"   
+        WHEN "CM_POSTCODE" IS NULL AND "CM_CITY" IS NOT NULL
+            THEN "CM_CITY"
             ELSE ''
         END AS "LINE2",
         CASE
-        WHEN SM_STATE_DESC IS NOT NULL AND CM_COUNTRY_DESC IS NOT NULL AND CM_STATE <> '98'
-            THEN SM_STATE_DESC || ', ' || CM_COUNTRY_DESC
-        WHEN SM_STATE_DESC IS NOT NULL AND CM_COUNTRY_DESC IS NULL AND CM_STATE <> '98'
-            THEN SM_STATE_DESC   
-        WHEN SM_STATE_DESC IS NULL AND CM_COUNTRY_DESC IS NOT NULL AND CM_STATE <> '98'
-            THEN CM_COUNTRY_DESC
-        WHEN SM_STATE_DESC IS NULL AND CM_COUNTRY_DESC IS NULL
+        WHEN "SM_STATE_DESC" IS NOT NULL AND "CM_COUNTRY_DESC" IS NOT NULL AND "CM_STATE" <> '98'
+            THEN "SM_STATE_DESC" || ', ' || "CM_COUNTRY_DESC"
+        WHEN "SM_STATE_DESC" IS NOT NULL AND "CM_COUNTRY_DESC" IS NULL AND "CM_STATE" <> '98'
+            THEN "SM_STATE_DESC"   
+        WHEN "SM_STATE_DESC" IS NULL AND "CM_COUNTRY_DESC" IS NOT NULL AND "CM_STATE" <> '98'
+            THEN "CM_COUNTRY_DESC"
+        WHEN "SM_STATE_DESC" IS NULL AND "CM_COUNTRY_DESC" IS NULL
             THEN ''
-            ELSE CM_COUNTRY_DESC
+            ELSE "CM_COUNTRY_DESC"
         END AS "LINE3"
         FROM
         (
@@ -144,18 +148,18 @@ FROM
                 WHERE SCA_REFID = SCM_REFID
                 AND SCA_STAFF_ID = SCM_STAFF_ID
             ) AS "CF_REASON",
-            INITCAP(CALENDAR.CONVERT_TO_MALAY_DATE(TO_CHAR(CM_DATE_FROM,'dd-mm-yyyy'),'DD MONTH YYYY')
-            || ' - ' || CALENDAR.CONVERT_TO_MALAY_DATE(TO_CHAR(CM_DATE_TO,'dd-mm-yyyy'),'DD MONTH YYYY')) AS CF_DATE_A1
-            FROM STAFF_CONFERENCE_MAIN,CONFERENCE_MAIN,STATE_MAIN,COUNTRY_MAIN
-            WHERE CM_REFID = SCM_REFID
-            AND COUNTRY_MAIN.CM_COUNTRY_CODE(+) = CONFERENCE_MAIN.CM_COUNTRY_CODE
-            AND SM_STATE_CODE(+) = CM_STATE
-            AND COALESCE(CONFERENCE_MAIN.CM_COUNTRY_CODE,'MYS') <> 'MYS'
+            INITCAP(CALENDAR_CONVERT_TO_MALAY_DATE(TO_CHAR(CM_DATE_FROM,'dd-mm-yyyy'),'DD MONTH YYYY')
+            || ' - ' || CALENDAR_CONVERT_TO_MALAY_DATE(TO_CHAR(CM_DATE_TO,'dd-mm-yyyy'),'DD MONTH YYYY')) AS "CF_DATE_A1"
+            FROM STAFF_CONFERENCE_MAIN
+            FULL OUTER JOIN CONFERENCE_MAIN ON CM_REFID = SCM_REFID
+            FULL OUTER JOIN STATE_MAIN ON SM_STATE_CODE = CM_STATE
+            FULL OUTER JOIN COUNTRY_MAIN ON COUNTRY_MAIN.CM_COUNTRY_CODE = CONFERENCE_MAIN.CM_COUNTRY_CODE
+            WHERE COALESCE(CONFERENCE_MAIN.CM_COUNTRY_CODE,'MYS') <> 'MYS'
             AND SCM_STAFF_ID = $P{STAFF_ID}
             AND
-            (TO_CHAR(CM_DATE_FROM,'yyyy') = TO_CHAR(SYSDATE,'yyyy')
-            OR TO_CHAR(CM_DATE_FROM,'yyyy') = TO_CHAR(SYSDATE-365.25,'yyyy'))
-            ORDER BY CM_YEAR DESC,CM_DATE_FROM,CM_DATE_TO
+            (TO_CHAR(CM_DATE_FROM,'yyyy') = TO_CHAR(CURRENT_DATE,'yyyy')
+            OR TO_CHAR(CM_DATE_FROM,'yyyy')::NUMERIC = TO_CHAR(CURRENT_DATE,'yyyy')::NUMERIC-1)
+            ORDER BY "CM_YEAR" DESC,CM_DATE_FROM,CM_DATE_TO
         )Q
     )W
 )E]]>
@@ -165,39 +169,51 @@ FROM
 		</field>
 		<field name="SCM_REFID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SCM_REFID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_main"/>
 		</field>
 		<field name="SCM_STAFF_ID" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SCM_STAFF_ID"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_main"/>
 		</field>
 		<field name="CM_NAME" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CM_NAME"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="CM_ADDRESS" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CM_ADDRESS"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="CM_CITY" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CM_CITY"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="CM_POSTCODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CM_POSTCODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="CM_STATE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CM_STATE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="CM_COUNTRY_CODE" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CM_COUNTRY_CODE"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="SM_STATE_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="SM_STATE_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="state_main"/>
 		</field>
 		<field name="CM_COUNTRY_DESC" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CM_COUNTRY_DESC"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="country_main"/>
 		</field>
 		<field name="CM_DATE_FROM" class="java.sql.Timestamp">
 			<property name="com.jaspersoft.studio.field.label" value="CM_DATE_FROM"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="CM_DATE_TO" class="java.sql.Timestamp">
 			<property name="com.jaspersoft.studio.field.label" value="CM_DATE_TO"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 		</field>
 		<field name="CF_REASON" class="java.lang.String">
 			<property name="com.jaspersoft.studio.field.label" value="CF_REASON"/>
@@ -227,60 +243,60 @@ FROM
 		<![CDATA[SELECT
 E.*,
 CASE
-WHEN LINE3 IS NOT NULL AND OUTPUT2 IS NOT NULL
-        THEN OUTPUT2 || CHR(10) || LINE3
-WHEN LINE3 IS NOT NULL AND OUTPUT2 IS NULL
-    THEN OUTPUT2 || LINE3
+WHEN "LINE3" IS NOT NULL AND "OUTPUT2" IS NOT NULL
+        THEN "OUTPUT2" || CHR(10) || "LINE3"
+WHEN "LINE3" IS NOT NULL AND "OUTPUT2" IS NULL
+    THEN "OUTPUT2" || "LINE3"
 END AS "OUTPUT3"
 FROM
 (
     SELECT
     W.*,
     CASE 
-    WHEN SCA_DATE_FROM IS NOT NULL AND SCA_DATE_TO IS NOT NULL 
-        THEN (initcap(calendar.CONVERT_TO_MALAY_DATE(to_char(W.SCA_DATE_FROM,'dd-mm-yyyy'),'DD MONTH YYYY')
-            || ' - ' || calendar.CONVERT_TO_MALAY_DATE(to_char(W.SCA_DATE_TO,'dd-mm-yyyy'),'DD MONTH YYYY')) 
-            || ' ( ' || W.SCA_DURATION || ' hari ) ')
-        ELSE (initcap(calendar.CONVERT_TO_MALAY_DATE(to_char(W.CM_DATE_FROM,'dd-mm-yyyy'),'DD MONTH YYYY')
-            || ' - ' || calendar.CONVERT_TO_MALAY_DATE(to_char(W.CM_DATE_TO,'dd-mm-yyyy'),'DD MONTH YYYY')) 
-            || ' ( ' || cm_duration || ' hari ) ')     
+    WHEN "SCA_DATE_FROM" IS NOT NULL AND "SCA_DATE_TO" IS NOT NULL 
+        THEN (initcap(calendar_CONVERT_TO_MALAY_DATE(to_char(W."SCA_DATE_FROM",'dd-mm-yyyy'),'DD MONTH YYYY')
+            || ' - ' || calendar_CONVERT_TO_MALAY_DATE(to_char(W."SCA_DATE_TO",'dd-mm-yyyy'),'DD MONTH YYYY')) 
+            || ' ( ' || W."SCA_DURATION" || ' hari ) ')
+        ELSE (initcap(calendar_CONVERT_TO_MALAY_DATE(to_char(W."CM_DATE_FROM",'dd-mm-yyyy'),'DD MONTH YYYY')
+            || ' - ' || calendar_CONVERT_TO_MALAY_DATE(to_char(W."CM_DATE_TO",'dd-mm-yyyy'),'DD MONTH YYYY')) 
+            || ' ( ' || "CM_DURATION" || ' hari ) ')     
     END AS "CF_DATE", 
     CASE 
-    WHEN LINE2 IS NOT NULL AND LINE1 IS NOT NULL
-        THEN LINE1 || CHR(10) || LINE2
-    WHEN LINE2 IS NOT NULL AND LINE1 IS NULL
-        THEN LINE1 || LINE2
+    WHEN "LINE2" IS NOT NULL AND "LINE1" IS NOT NULL
+        THEN "LINE1" || CHR(10) || "LINE2"
+    WHEN "LINE2" IS NOT NULL AND "LINE1" IS NULL
+        THEN "LINE1" || "LINE2"
     END AS "OUTPUT2"
     FROM
     (
         SELECT
         Q.*,
         CASE 
-        WHEN CM_ADDRESS IS NOT NULL
-            THEN CM_ADDRESS
+        WHEN "CM_ADDRESS" IS NOT NULL
+            THEN "CM_ADDRESS"
             ELSE ''
         END AS "LINE1",    
         CASE 
-        WHEN CM_POSTCODE IS NOT NULL AND CM_CITY IS NOT NULL
-           THEN CM_POSTCODE|| ', ' ||CM_CITY
-        WHEN CM_POSTCODE IS NOT NULL AND CM_CITY IS NULL
-            THEN CM_POSTCODE
-        WHEN CM_POSTCODE IS NULL AND CM_CITY IS NOT NULL   
-            THEN CM_CITY
-        WHEN CM_POSTCODE IS NULL AND CM_CITY IS NULL 
+        WHEN "CM_POSTCODE" IS NOT NULL AND "CM_CITY" IS NOT NULL
+           THEN "CM_POSTCODE"|| ', ' ||"CM_CITY"
+        WHEN "CM_POSTCODE" IS NOT NULL AND "CM_CITY" IS NULL
+            THEN "CM_POSTCODE"
+        WHEN "CM_POSTCODE" IS NULL AND "CM_CITY" IS NOT NULL   
+            THEN "CM_CITY"
+        WHEN "CM_POSTCODE" IS NULL AND "CM_CITY" IS NULL 
             THEN ''
         END AS "LINE2",
         CASE 
-        WHEN SM_STATE_DESC IS NOT NULL AND CM_COUNTRY_DESC IS NOT NULL
-           THEN SM_STATE_DESC|| ', ' ||CM_COUNTRY_DESC
-        WHEN SM_STATE_DESC IS NOT NULL AND CM_COUNTRY_DESC IS NULL
-            THEN SM_STATE_DESC
-        WHEN SM_STATE_DESC IS NULL AND CM_COUNTRY_DESC IS NOT NULL
-            THEN CM_COUNTRY_DESC
-        WHEN SM_STATE_DESC IS NULL AND CM_COUNTRY_DESC IS NULL 
+        WHEN "SM_STATE_DESC" IS NOT NULL AND "CM_COUNTRY_DESC" IS NOT NULL
+           THEN "SM_STATE_DESC"|| ', ' ||"CM_COUNTRY_DESC"
+        WHEN "SM_STATE_DESC" IS NOT NULL AND "CM_COUNTRY_DESC" IS NULL
+            THEN "SM_STATE_DESC"
+        WHEN "SM_STATE_DESC" IS NULL AND "CM_COUNTRY_DESC" IS NOT NULL
+            THEN "CM_COUNTRY_DESC"
+        WHEN "SM_STATE_DESC" IS NULL AND "CM_COUNTRY_DESC" IS NULL 
             THEN ''
         END AS "LINE3",
-        (SELECT Q.CM_DATE_TO-Q.CM_DATE_FROM+1 FROM DUAL) AS "CM_DURATION"
+        (EXTRACT(DAY FROM Q."CM_DATE_TO"::DATE)::NUMERIC-EXTRACT(DAY FROM Q."CM_DATE_FROM"::DATE)::NUMERIC+1) AS "CM_DURATION"
         FROM
         (  
             SELECT 
@@ -310,25 +326,27 @@ FROM
             SS_DESC_SHORT AS "SS_DESC_SHORT",
             SCA_DATE_FROM AS "SCA_DATE_FROM",
             SCA_DATE_TO AS "SCA_DATE_TO",
-            (SCA_DATE_TO-SCA_DATE_FROM+1) AS "SCA_DURATION",
+            ((EXTRACT(DAY FROM SCA_DATE_TO::date)::NUMERIC-EXTRACT(DAY FROM SCA_DATE_FROM::date)::NUMERIC)::NUMERIC+1) AS "SCA_DURATION",
             (
-                SELECT DM1.DM_DEPT_DESC||DECODE(DM2.DM_DEPT_DESC,NULL,'',' / '||DM2.DM_DEPT_DESC)
-                FROM STAFF_MAIN,DEPARTMENT_MAIN DM1,DEPARTMENT_MAIN DM2
-                WHERE SM_DEPT_CODE = DM1.DM_DEPT_CODE
-                AND SM_UNIT(+) = DM2.DM_DEPT_CODE
-                AND SM_STAFF_ID = SCA_STAFF_ID
+                SELECT DM1.DM_DEPT_DESC||
+                (CASE
+                WHEN DM2.DM_DEPT_DESC IS NULL
+                THEN ''
+                ELSE ' / '||DM2.DM_DEPT_DESC
+                END)
+                FROM STAFF_MAIN
+                FULL OUTER JOIN DEPARTMENT_MAIN DM1 ON SM_DEPT_CODE = DM1.DM_DEPT_CODE
+                FULL OUTER JOIN DEPARTMENT_MAIN DM2 ON SM_UNIT = DM2.DM_DEPT_CODE
+                WHERE SM_STAFF_ID = SCA_STAFF_ID
             ) AS "CF_SM_DEPT"
-            FROM STAFF_CONFERENCE_A,STAFF_CONFERENCE_A_PART,
-            CONFERENCE_MAIN CM,STATE_MAIN,COUNTRY_MAIN CM2,
-            STAFF_MAIN,SERVICE_SCHEME
-            WHERE CM_REFID = SCA_REFID
-            AND SM_STAFF_ID = SCA_STAFF_ID
-            AND SS_SERVICE_CODE(+) = SM_JOB_CODE
-            AND CM2.CM_COUNTRY_CODE = CM.CM_COUNTRY_CODE
-            AND SM_STATE_CODE = CM_STATE
-            AND SCAP_REFID(+) = SCA_REFID
-            AND SCAP_STAFF_ID(+) = SCA_STAFF_ID
-            AND SCA_REFID = $P{CONFERENCE_ID}
+            FROM STAFF_CONFERENCE_A
+            FULL OUTER JOIN STAFF_CONFERENCE_A_PART ON SCAP_REFID = SCA_REFID AND SCAP_STAFF_ID = SCA_STAFF_ID
+            FULL OUTER JOIN CONFERENCE_MAIN CM ON CM_REFID = SCA_REFID
+            FULL OUTER JOIN STATE_MAIN ON SM_STATE_CODE = CM_STATE
+            FULL OUTER JOIN COUNTRY_MAIN CM2 ON CM2.CM_COUNTRY_CODE = CM.CM_COUNTRY_CODE
+            FULL OUTER JOIN STAFF_MAIN ON SM_STAFF_ID = SCA_STAFF_ID
+            FULL OUTER JOIN SERVICE_SCHEME ON SS_SERVICE_CODE = SM_JOB_CODE
+            WHERE SCA_REFID = $P{CONFERENCE_ID}
             AND SCA_STAFF_ID = $P{STAFF_ID}
         )Q
     )W
@@ -336,81 +354,104 @@ FROM
 	</queryString>
 	<field name="SCA_REFID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_REFID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="SCA_STAFF_ID" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_STAFF_ID"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="CM_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CM_NAME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="SCA_REASON" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_REASON"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="CM_ADDRESS" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CM_ADDRESS"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="CM_CITY" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CM_CITY"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="CM_POSTCODE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CM_POSTCODE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="CM_STATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CM_STATE"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="CM_COUNTRY_CODE2" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CM_COUNTRY_CODE2"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="SM_STATE_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_STATE_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="state_main"/>
 	</field>
 	<field name="CM_COUNTRY_DESC" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CM_COUNTRY_DESC"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="country_main"/>
 	</field>
 	<field name="CM_DATE_FROM" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="CM_DATE_FROM"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="CM_DATE_TO" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="CM_DATE_TO"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="conference_main"/>
 	</field>
 	<field name="SCA_PARTICIPANT_INFO" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_PARTICIPANT_INFO"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="SCA_EMBASSY_INFO" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_EMBASSY_INFO"/>
 	</field>
 	<field name="SCA_FREQUENCY" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_FREQUENCY"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="SCA_SPONSOR_BY" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_SPONSOR_BY"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="SCA_SPONSOR_RM" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_SPONSOR_RM"/>
 	</field>
 	<field name="SCA_BENEFIT_TO_COUNTRY" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_BENEFIT_TO_COUNTRY"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="SCA_MINISTRY_APPROVAL" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_MINISTRY_APPROVAL"/>
 	</field>
 	<field name="SCAP_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCAP_NAME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a_part"/>
 	</field>
 	<field name="SCAP_POSITION" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SCAP_POSITION"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a_part"/>
 	</field>
 	<field name="SM_STAFF_NAME" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SM_STAFF_NAME"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_main"/>
 	</field>
 	<field name="SS_DESC_SHORT" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="SS_DESC_SHORT"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="service_scheme"/>
 	</field>
 	<field name="SCA_DATE_FROM" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_DATE_FROM"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="SCA_DATE_TO" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_DATE_TO"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="staff_conference_a"/>
 	</field>
 	<field name="SCA_DURATION" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="SCA_DURATION"/>
@@ -918,10 +959,10 @@ daripada negeri itu diperlukan :]]></text>
 				</frame>
 			</frame>
 		</band>
-		<band height="722" splitType="Prevent">
+		<band height="722" splitType="Immediate">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<frame>
-				<reportElement x="0" y="0" width="495" height="722" uuid="6aeeaa82-85b6-4f64-b65e-9722f83b829e"/>
+				<reportElement x="0" y="0" width="495" height="722" isPrintWhenDetailOverflows="true" uuid="6aeeaa82-85b6-4f64-b65e-9722f83b829e"/>
 				<frame>
 					<reportElement positionType="Float" x="0" y="0" width="495" height="45" uuid="53dd461b-d7f0-48d8-87f6-b699da51f0ce">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -1014,7 +1055,7 @@ Negeri dan Kementerian Luar]]></text>
 					</line>
 				</frame>
 				<frame>
-					<reportElement positionType="Float" x="0" y="105" width="495" height="110" uuid="4a5deadf-f033-46a9-acc7-f27cee376b94">
+					<reportElement x="0" y="105" width="495" height="110" uuid="4a5deadf-f033-46a9-acc7-f27cee376b94">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
@@ -1127,7 +1168,7 @@ Negeri dan Kementerian Luar]]></text>
 					</line>
 				</frame>
 				<frame>
-					<reportElement positionType="Float" x="0" y="215" width="495" height="164" uuid="636532ef-9fca-4616-a103-2c62751def2f">
+					<reportElement x="0" y="215" width="495" height="164" uuid="636532ef-9fca-4616-a103-2c62751def2f">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
@@ -1238,7 +1279,7 @@ Negeri dan Kementerian Luar]]></text>
 					</line>
 				</frame>
 				<frame>
-					<reportElement positionType="Float" x="0" y="379" width="495" height="164" uuid="d79a269f-b4d0-434c-8fa4-637cc2ee31ea">
+					<reportElement x="0" y="379" width="495" height="164" uuid="d79a269f-b4d0-434c-8fa4-637cc2ee31ea">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
@@ -1348,7 +1389,7 @@ Negeri dan Kementerian Luar]]></text>
 					</line>
 				</frame>
 				<frame>
-					<reportElement positionType="Float" x="0" y="543" width="495" height="179" uuid="2824fe31-58b0-4b41-bf5f-9afa0076757c">
+					<reportElement x="0" y="543" width="495" height="162" uuid="2824fe31-58b0-4b41-bf5f-9afa0076757c">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					</reportElement>
