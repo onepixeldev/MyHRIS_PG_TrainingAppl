@@ -17,10 +17,10 @@
 	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
 	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
 	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
-	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
+	<property name="ireport.jasperserver.url" value="http://10.99.4.7:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
-	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR268X_files/main_jrxml"/>
-	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR268X"/>
+	<property name="ireport.jasperserver.report.resource" value="/Reports/PG_MyHRIS/HRA_AT/ATR268X_files/main_jrxml"/>
+	<property name="ireport.jasperserver.reportUnit" value="/Reports/PG_MyHRIS/HRA_AT/ATR268X"/>
 	<style name="Table_TH" mode="Opaque" backcolor="#F0F8FF">
 		<box>
 			<pen lineWidth="0.5" lineColor="#000000"/>
@@ -135,8 +135,7 @@ END AS "ADMIN_DEPT",
     FROM STAFF_MAIN,DEPARTMENT_MAIN
     WHERE SM_STAFF_ID = $P{P_STH_STAFF_ID}
     AND SM_DEPT_CODE = DM_DEPT_CODE
-) "PTJ"
-]]>
+) "PTJ"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

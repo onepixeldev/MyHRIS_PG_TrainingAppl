@@ -12,10 +12,10 @@
 	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
+	<property name="ireport.jasperserver.url" value="http://10.99.4.7:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
-	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR144_files/main_jrxml"/>
-	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR144"/>
+	<property name="ireport.jasperserver.report.resource" value="/Reports/PG_MyHRIS/HRA_AT/ATR144_files/main_jrxml"/>
+	<property name="ireport.jasperserver.reportUnit" value="/Reports/PG_MyHRIS/HRA_AT/ATR144"/>
 	<style name="Table_TH" mode="Transparent" backcolor="#F0F8FF">
 		<box>
 			<pen lineWidth="0.5" lineColor="#000000"/>
@@ -253,7 +253,7 @@ FROM
         GROUP BY SM_DEPT_CODE
     ) AS D 
     ON SM_DEPT_CODE2 = DM_DEPT_CODE1
-) AS E ]]>
+) AS E]]>
 		</queryString>
 		<field name="SUM_STAFF" class="java.math.BigDecimal">
 			<property name="com.jaspersoft.studio.field.label" value="SUM_STAFF"/>
@@ -272,7 +272,7 @@ FROM
 		</field>
 	</subDataset>
 	<queryString language="SQL">
-		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MM-YYYY HH12:MI AM') "CURR_DATE" ]]>
+		<![CDATA[SELECT TO_CHAR(NOW(), 'DD-MM-YYYY HH12:MI AM') "CURR_DATE"]]>
 	</queryString>
 	<field name="CURR_DATE" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="CURR_DATE"/>

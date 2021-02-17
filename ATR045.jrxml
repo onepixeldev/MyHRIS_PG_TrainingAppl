@@ -12,10 +12,10 @@
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="ireport.jasperserver.url" value="http://10.99.1.192:8080/jasperserver/"/>
+	<property name="ireport.jasperserver.url" value="http://10.99.4.7:8080/jasperserver/"/>
 	<property name="ireport.jasperserver.user" value="syazwan|upsidev"/>
-	<property name="ireport.jasperserver.report.resource" value="/Reports/MyHRIS/HRA_AT/ATR045_files/main_jrxml"/>
-	<property name="ireport.jasperserver.reportUnit" value="/Reports/MyHRIS/HRA_AT/ATR045"/>
+	<property name="ireport.jasperserver.report.resource" value="/Reports/PG_MyHRIS/HRA_AT/ATR045_files/main_jrxml"/>
+	<property name="ireport.jasperserver.reportUnit" value="/Reports/PG_MyHRIS/HRA_AT/ATR045"/>
 	<subDataset name="STAFF_LIST" uuid="6cc2d593-36e9-48fe-a346-e72231fcdd7f">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyHRIS_PG"/>
 		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
