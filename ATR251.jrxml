@@ -592,7 +592,7 @@ ON TH_REF_ID = TSR_REFID]]>
 				<reportElement x="10" y="0" width="480" height="60" uuid="8ff4d3c4-01f8-4c2a-bb96-ab7e7375f7c2"/>
 				<image>
 					<reportElement x="0" y="0" width="110" height="60" uuid="0bc1de83-c43f-4d16-8642-1afabec14639"/>
-					<imageExpression><![CDATA["repo:/Reports/Images/Logo_UPSI_2018_Confirm_With_Stroke.png"]]></imageExpression>
+					<imageExpression><![CDATA["repo:/Reports/Image/Logo_UPSI_2018_Confirm_With_Stroke.png"]]></imageExpression>
 				</image>
 				<staticText>
 					<reportElement x="170" y="13" width="278" height="22" uuid="37661574-103d-41b0-923b-afa230cebf09"/>
